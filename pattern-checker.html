@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pattern Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF6EF;
+    --card:#FFFFFF;
+    --edge:#EFE3D6;
+    --field:#FDFAF6;
+    --ink:#171514;
+    --panel:#1F1D1B;
+    --tile:#2C2926;
+    --bar:#0F0E0D;
+    --orange:#DE6E45;
+    --peach:#EFA98D;
+    --muted:#8C8781;
+    --label:#9A938C;
+    --serif:"Playfair Display", Georgia, "Times New Roman", serif;
+    --sans:"DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;background:var(--cream);color:var(--ink);
+    font-family:var(--sans);font-size:15px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .topbar{background:var(--bar);padding:15px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .wordmark{font-family:var(--serif);font-style:italic;font-weight:700;font-size:22px;color:#EBB694;}
+  .tagline{font-size:11.5px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#F5EFE8;}
+
+  main{max-width:1080px;margin:0 auto;padding:40px 22px 70px;}
+
+  h1{font-family:var(--serif);font-weight:700;font-size:clamp(32px,5.4vw,52px);line-height:1.08;text-align:center;margin:0 0 8px;}
+  h1 em{font-style:italic;color:var(--orange);}
+  .sub{text-align:center;color:var(--muted);margin:0 0 30px;font-size:16px;}
+
+  .layout{display:grid;grid-template-columns:352px 1fr;gap:22px;align-items:start;}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr;} }
+
+  .col > * + *{margin-top:22px;}
+  .sticky{position:sticky;top:18px;}
+  @media (max-width:900px){ .sticky{position:static;} }
+
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:24px;}
+
+  .cardhead{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:700;font-size:19px;margin:0 0 18px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--orange);flex:none;}
+
+  .label{display:block;font-size:11.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--label);margin-bottom:7px;}
+  .hint{font-size:12.5px;color:var(--label);margin:6px 0 0;}
+
+  .stack > * + *{margin-top:16px;}
+  .two{display:flex;gap:12px;flex-wrap:wrap;}
+  .two > *{flex:1 1 120px;min-width:110px;}
+
+  input[type="number"], select{
+    width:100%;font-family:var(--sans);font-size:17px;font-weight:500;color:var(--ink);
+    background:var(--field);border:1px solid var(--edge);border-radius:10px;padding:11px 13px;appearance:none;
+  }
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%238C8781'/></svg>");background-repeat:no-repeat;background-position:right 13px center;padding-right:32px;}
+  input[type="number"]:focus, select:focus{outline:2px solid var(--orange);outline-offset:1px;border-color:transparent;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .chip{font-family:var(--sans);font-size:12.5px;font-weight:500;color:var(--ink);background:var(--field);
+    border:1px solid var(--edge);border-radius:999px;padding:6px 13px;cursor:pointer;}
+  .chip:hover{border-color:var(--orange);color:var(--orange);}
+  .chip.on{background:var(--orange);border-color:var(--orange);color:#fff;}
+  .chip:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+
+  /* upload */
+  .drop{border:1.5px dashed #DCCDBE;border-radius:12px;background:var(--field);padding:22px 16px;text-align:center;cursor:pointer;}
+  .drop.over{border-color:var(--orange);background:#FCEFE7;}
+  .drop p{margin:0;font-size:13.5px;color:var(--muted);}
+  .drop b{display:block;font-size:15px;color:var(--ink);font-weight:500;margin-bottom:4px;}
+  .drop:focus-visible{outline:2px solid var(--orange);outline-offset:2px;}
+
+  .thumbrow{display:flex;gap:13px;align-items:center;}
+  .thumb{width:70px;height:70px;border-radius:10px;border:1px solid var(--edge);background:#fff center/cover no-repeat;flex:none;}
+  .meta{font-size:13px;color:var(--muted);min-width:0;}
+  .meta b{display:block;color:var(--ink);font-weight:500;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  .linkbtn{background:none;border:0;padding:0;font-family:var(--sans);font-size:13px;font-weight:500;color:var(--orange);cursor:pointer;text-decoration:underline;}
+
+  /* dark preview panel */
+  .panel{background:var(--panel);border-radius:16px;padding:22px;color:#F5EFE8;}
+  .panel .cardhead{color:#fff;margin-bottom:16px;}
+
+  .toolrow{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
+  .dchip{font-family:var(--sans);font-size:12.5px;font-weight:500;color:#D8CFC7;background:var(--tile);
+    border:1px solid #3A3532;border-radius:999px;padding:6px 14px;cursor:pointer;}
+  .dchip:hover{color:#fff;border-color:#544D48;}
+  .dchip.on{background:var(--orange);border-color:var(--orange);color:#fff;}
+  .dchip:focus-visible{outline:2px solid var(--peach);outline-offset:2px;}
+
+  .mini{font-size:11.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#A69D95;}
+
+  .switchrow{display:flex;align-items:center;gap:10px;}
+  .switch{width:42px;height:24px;border-radius:999px;background:#4A433E;border:0;padding:3px;cursor:pointer;display:flex;align-items:center;flex:none;}
+  .knob{width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .18s ease;}
+  .switch[aria-checked="true"]{background:var(--orange);}
+  .switch[aria-checked="true"] .knob{transform:translateX(18px);}
+  .switch:focus-visible{outline:2px solid var(--peach);outline-offset:2px;}
+
+  .stage{position:relative;background:var(--field);border-radius:11px;overflow:hidden;}
+  #repeatStage{height:330px;background-repeat:repeat;}
+  @media (max-width:900px){ #repeatStage{height:250px;} }
+  #repeatStage .gridlines{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .15s;}
+  #repeatStage.showgrid .gridlines{opacity:1;}
+  .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:22px;color:var(--label);font-size:13.5px;}
+
+  #productStage{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:center;padding:20px 16px 16px;min-height:250px;}
+  .product{text-align:center;}
+  .swatch{border:1px solid #CDC2B6;border-radius:3px;background:#fff repeat;box-shadow:0 5px 14px rgba(23,21,20,.14);}
+  .swatch.round{border-radius:8px;}
+  .pname{font-size:12.5px;color:var(--ink);font-weight:500;margin:9px 0 0;}
+  .psize{font-size:11.5px;color:var(--label);margin:0;}
+  .miniDl{display:block;margin:7px auto 0;font-family:var(--sans);font-size:11px;font-weight:500;color:var(--orange);
+    background:none;border:0;padding:2px 4px;cursor:pointer;text-decoration:underline;}
+  .miniDl:hover{color:var(--peach);}
+  .miniDl:disabled{color:#6B655F;cursor:not-allowed;text-decoration:none;}
+  .miniDl:focus-visible{outline:2px solid var(--peach);outline-offset:2px;}
+
+  .stagefoot{font-size:12.5px;color:#A69D95;margin:11px 2px 0;text-align:center;}
+
+  .dlnote{text-align:center;font-size:11.5px;color:#A69D95;margin:14px auto 0;max-width:420px;line-height:1.5;}
+
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-top:16px;}
+  @media (max-width:600px){ .tiles{grid-template-columns:1fr 1fr;} }
+  .tilebox{background:var(--tile);border-radius:10px;padding:12px 13px;}
+  .tilebox span{display:block;font-size:10.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#A69D95;margin-bottom:3px;}
+  .tilebox strong{font-family:var(--serif);font-weight:700;font-size:19px;line-height:1.2;color:#fff;}
+  .tilebox.alt strong{color:var(--peach);}
+
+  .tip{display:flex;gap:10px;align-items:flex-start;background:var(--tile);border-radius:10px;padding:12px 14px;margin-top:11px;font-size:13.5px;color:#E4DBD3;}
+
+  .foot{text-align:center;color:var(--label);font-size:13px;margin:30px 0 0;}
+  .credit{text-align:center;font-size:13.5px;color:var(--muted);margin:16px 0 0;padding-top:16px;border-top:1px solid var(--edge);}
+  .credit a{color:var(--orange);text-decoration:none;font-weight:500;}
+  .credit a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="wordmark">Occasionalish</span>
+  <span class="tagline">Free resource</span>
+</div>
+
+<main>
+  <h1>The <em>Pattern</em> Checker</h1>
+  <p class="sub">See your tile in repeat and check how it looks at real product size</p>
+
+  <div class="layout">
+
+    <!-- LEFT: controls -->
+    <div class="col">
+
+      <section class="card">
+        <p class="cardhead"><i class="dot"></i>Your Tile</p>
+
+        <div id="dropWrap">
+          <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload your pattern tile">
+            <p><b>Drop your tile here</b>or click to choose a file</p>
+          </div>
+          <p class="hint">Your file stays on your computer. Nothing is uploaded anywhere.</p>
+          <p style="margin-top:11px"><button class="linkbtn" id="sample">Try a sample tile instead</button></p>
+        </div>
+
+        <div id="loaded" hidden>
+          <div class="thumbrow">
+            <div class="thumb" id="thumb"></div>
+            <div class="meta">
+              <b id="fname">tile.png</b>
+              <span id="fdims">600 x 600 px</span><br>
+              <button class="linkbtn" id="change">Use a different tile</button>
+            </div>
+          </div>
+        </div>
+
+        <input type="file" id="file" accept="image/png,image/jpeg,image/webp" hidden>
+      </section>
+
+      <section class="card">
+        <p class="cardhead"><i class="dot"></i>Repeat Size</p>
+        <div class="stack">
+          <div class="two">
+            <div>
+              <label class="label" for="rep">Repeat size</label>
+              <input type="number" id="rep" value="6" min="0.25" step="0.25">
+            </div>
+            <div>
+              <label class="label" for="unit">Units</label>
+              <select id="unit">
+                <option value="in" selected>Inches</option>
+                <option value="cm">Centimetres</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <span class="label">Quick pick</span>
+            <div class="chips" id="repChips"></div>
+          </div>
+          <p class="hint">Smaller repeat means smaller motifs and more of them across the page.</p>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- RIGHT: live preview -->
+    <div class="col">
+      <section class="panel sticky">
+        <p class="cardhead"><i class="dot"></i>Live Preview</p>
+
+        <div class="toolrow">
+          <div class="chips">
+            <button class="dchip on" id="tabRepeat" type="button">In repeat</button>
+            <button class="dchip" id="tabProducts" type="button">On products</button>
+          </div>
+          <div class="switchrow" id="gridWrap">
+            <span class="mini">Tile edges</span>
+            <button class="switch" id="gridSwitch" role="switch" aria-checked="false" aria-label="Show tile edges"><i class="knob"></i></button>
+          </div>
+        </div>
+
+        <div class="toolrow" id="viewRow">
+          <span class="mini">Area shown</span>
+          <div class="chips" id="viewChips"></div>
+        </div>
+
+        <div class="stage" id="repeatStage">
+          <div class="gridlines" id="gridlines"></div>
+          <div class="empty" id="empty">Add a tile to see it in repeat</div>
+        </div>
+
+        <div class="stage" id="productStage" hidden></div>
+
+        <p class="dlnote" id="downloadNote" hidden>Use the Download link under each product for a print ready file at its exact size and 600 DPI, with no text or border.</p>
+
+        <p class="stagefoot" id="stagefoot">Look for seam lines, gaps and motifs clumping together</p>
+
+        <div class="tiles">
+          <div class="tilebox alt"><span>Tile size</span><strong id="sTile">No tile</strong></div>
+          <div class="tilebox"><span>Repeat</span><strong id="sRep">6 in</strong></div>
+          <div class="tilebox alt"><span>Resolution</span><strong id="sDpi">0 DPI</strong></div>
+          <div class="tilebox"><span>Shape</span><strong id="sShape">-</strong></div>
+        </div>
+
+        <div class="tip"><span>&#128161;</span><span id="tip">Add a tile to see how your pattern holds up in repeat.</span></div>
+      </section>
+    </div>
+
+  </div>
+
+  <p class="foot">A clean repeat has no visible seam, no obvious gaps and no line running diagonally through the design.</p>
+  <p class="credit">By <a href="https://www.occasionalish.com/" target="_blank" rel="noopener">Occasionalish</a> &nbsp;&bull;&nbsp; Your First Stationery Product</p>
+</main>
+
+<script>
+(function(){
+  var TO_IN = { in:1, cm:1/2.54 };
+  var LBL = { in:"in", cm:"cm" };
+  var REP_PRESETS = { in:[2,4,6,8,12], cm:[5,10,15,20,30] };
+  var VIEWS = { in:[6,12,24], cm:[15,30,60] };
+
+  var PRODUCTS = [
+    { name:"Folded card", w:5, h:7, round:false },
+    { name:"Sticker sheet", w:4, h:6, round:true },
+    { name:"Notebook cover", w:5.5, h:8.5, round:true },
+    { name:"Gift wrap section", w:12, h:12, round:false }
+  ];
+
+  var state = { src:null, tw:0, th:0, view:12, mode:"repeat" };
+
+  function $(id){ return document.getElementById(id); }
+  function num(el){ var n = parseFloat(el.value); return isFinite(n) && n > 0 ? n : 0; }
+  function fmt(n){ return Math.round(n).toLocaleString(); }
+  function trim(n){ return (Math.round(n*100)/100).toString(); }
+
+  /* chips */
+  function buildChips(box, values, cls, onPick){
+    box.innerHTML = "";
+    values.forEach(function(v){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = cls; b.dataset.v = v;
+      b.textContent = v + " " + LBL[$("unit").value];
+      b.addEventListener("click", function(){ onPick(v); });
+      box.appendChild(b);
+    });
+  }
+  function markChips(box, val){
+    Array.prototype.forEach.call(box.children, function(c){
+      c.classList.toggle("on", parseFloat(c.dataset.v) === val);
+    });
+  }
+  function buildAllChips(){
+    var u = $("unit").value;
+    buildChips($("repChips"), REP_PRESETS[u], "chip", function(v){ $("rep").value = v; render(); });
+    buildChips($("viewChips"), VIEWS[u], "dchip", function(v){ state.view = v; render(); });
+  }
+
+  /* product markup */
+  PRODUCTS.forEach(function(p, i){
+    var d = document.createElement("div");
+    d.className = "product";
+    d.innerHTML = '<div class="swatch' + (p.round ? " round" : "") + '" id="sw' + i + '"></div>' +
+                  '<p class="pname">' + p.name + '</p>' +
+                  '<p class="psize">' + p.w + ' x ' + p.h + ' in</p>' +
+                  '<button class="miniDl" type="button" data-i="' + i + '">&#8681; Download</button>';
+    $("productStage").appendChild(d);
+  });
+
+  /* tabs */
+  function setMode(m){
+    state.mode = m;
+    $("tabRepeat").classList.toggle("on", m === "repeat");
+    $("tabProducts").classList.toggle("on", m === "products");
+    $("repeatStage").hidden = m !== "repeat";
+    $("productStage").hidden = m !== "products";
+    $("viewRow").style.display = m === "repeat" ? "flex" : "none";
+    $("gridWrap").style.display = m === "repeat" ? "flex" : "none";
+    $("downloadNote").hidden = m !== "products";
+    $("stagefoot").textContent = m === "repeat"
+      ? "Look for seam lines, gaps and motifs clumping together"
+      : "All four are drawn to the same scale, so you can compare how large your motifs read";
+    render();
+  }
+  $("tabRepeat").addEventListener("click", function(){ setMode("repeat"); });
+  $("tabProducts").addEventListener("click", function(){ setMode("products"); });
+
+  /* file handling */
+  function loadSrc(src, name){
+    var img = new Image();
+    img.onload = function(){
+      state.src = src; state.tw = img.naturalWidth; state.th = img.naturalHeight;
+      $("dropWrap").hidden = true;
+      $("loaded").hidden = false;
+      $("thumb").style.backgroundImage = "url(" + src + ")";
+      $("fname").textContent = name;
+      $("fdims").textContent = fmt(state.tw) + " x " + fmt(state.th) + " px";
+      $("empty").style.display = "none";
+      render();
+    };
+    img.src = src;
+  }
+
+  function readFile(f){
+    if(!f || !/^image\//.test(f.type)) return;
+    var r = new FileReader();
+    r.onload = function(e){ loadSrc(e.target.result, f.name); };
+    r.readAsDataURL(f);
+  }
+
+  var drop = $("drop");
+  drop.addEventListener("click", function(){ $("file").click(); });
+  drop.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); $("file").click(); } });
+  drop.addEventListener("dragover", function(e){ e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", function(){ drop.classList.remove("over"); });
+  drop.addEventListener("drop", function(e){ e.preventDefault(); drop.classList.remove("over"); readFile(e.dataTransfer.files[0]); });
+  $("file").addEventListener("change", function(){ readFile(this.files[0]); });
+  $("change").addEventListener("click", function(){
+    $("loaded").hidden = true; $("dropWrap").hidden = false;
+    state.src = null; $("file").value = "";
+    $("empty").style.display = "flex";
+    render();
+  });
+
+  /* sample tile */
+  $("sample").addEventListener("click", function(){
+    var n = 480, c = document.createElement("canvas");
+    c.width = n; c.height = n;
+    var x = c.getContext("2d");
+    x.fillStyle = "#FBF6EF"; x.fillRect(0,0,n,n);
+    var shapes = [
+      [70,90,26,"#DE6E45"], [250,60,16,"#C9BFB4"], [390,140,30,"#EFA98D"],
+      [140,240,20,"#DE6E45"], [330,300,24,"#C9BFB4"], [60,380,18,"#EFA98D"],
+      [220,420,28,"#DE6E45"], [430,390,14,"#C9BFB4"], [180,160,12,"#EFA98D"]
+    ];
+    shapes.forEach(function(s){
+      for(var dx=-1; dx<=1; dx++){
+        for(var dy=-1; dy<=1; dy++){
+          x.beginPath();
+          x.arc(s[0]+dx*n, s[1]+dy*n, s[2], 0, Math.PI*2);
+          x.fillStyle = s[3]; x.fill();
+        }
+      }
+    });
+    loadSrc(c.toDataURL("image/png"), "sample-tile.png");
+  });
+
+  /* grid toggle */
+  var gs = $("gridSwitch");
+  gs.addEventListener("click", function(){
+    var on = gs.getAttribute("aria-checked") === "true";
+    gs.setAttribute("aria-checked", String(!on));
+    $("repeatStage").classList.toggle("showgrid", !on);
+  });
+
+  $("unit").addEventListener("change", function(){
+    var u = this.value;
+    $("rep").value = u === "in" ? 6 : 15;
+    state.view = u === "in" ? 12 : 30;
+    buildAllChips();
+    render();
+  });
+  $("rep").addEventListener("input", render);
+  window.addEventListener("resize", render);
+
+  function slugify(name){
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  }
+
+  /* classic browser download: works when the page runs on its own page or tab.
+     Sandboxed embeds (site builders, Canva included) usually block this. */
+  function classicDownload(blob, filename){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
+  /* when this page is open inside Claude's own viewer, it can ask the platform
+     to save the file instead, which works even where a plain download link cannot */
+  function getDownloadsCapability(){
+    try {
+      if(!window.claude || typeof window.claude.use !== "function") return Promise.resolve(null);
+      return window.claude.use("downloads").catch(function(){ return null; });
+    } catch(e){
+      return Promise.resolve(null);
+    }
+  }
+
+  function triggerDownload(canvas, filename){
+    canvas.toBlob(function(blob){
+      if(!blob) return;
+      getDownloadsCapability().then(function(cap){
+        if(!cap){ classicDownload(blob, filename); return; }
+        cap.save({ filename: filename, data: blob }).catch(function(err){
+          var code = err && err.code;
+          if(code !== "declined" && code !== "rate_limited"){
+            classicDownload(blob, filename);
+          }
+        });
+      });
+    }, "image/png");
+  }
+
+  /* build a print-ready standalone tile at the product's exact physical size and DPI,
+     no border, no card mockup, no text - just the pattern itself */
+  var EXPORT_DPI = 600;
+  function downloadProductAtSize(p){
+    if(!state.src) return;
+
+    var img = new Image();
+    img.onload = function(){
+      var u = $("unit").value;
+      var repIn = num($("rep")) * TO_IN[u];
+      if(repIn <= 0) return;
+
+      var wPx = Math.max(1, Math.round(p.w * EXPORT_DPI));
+      var hPx = Math.max(1, Math.round(p.h * EXPORT_DPI));
+      var tileWpx = repIn * EXPORT_DPI;
+      var tileHpx = tileWpx * (img.naturalHeight / img.naturalWidth);
+
+      /* draw one tile, at true resolution, onto an offscreen canvas so it can be
+         used as a seamless repeating fill pattern across the full product size */
+      var tileCanvas = document.createElement("canvas");
+      tileCanvas.width = Math.max(1, Math.round(tileWpx));
+      tileCanvas.height = Math.max(1, Math.round(tileHpx));
+      var tctx = tileCanvas.getContext("2d");
+      tctx.drawImage(img, 0, 0, tileCanvas.width, tileCanvas.height);
+
+      var canvas = document.createElement("canvas");
+      canvas.width = wPx;
+      canvas.height = hPx;
+      var ctx = canvas.getContext("2d");
+      var pattern = ctx.createPattern(tileCanvas, "repeat");
+      ctx.fillStyle = pattern;
+      ctx.fillRect(0, 0, wPx, hPx);
+
+      var fname = "pattern-" + slugify(p.name) + "-" + trim(p.w) + "x" + trim(p.h) + "in-" + EXPORT_DPI + "dpi.png";
+      triggerDownload(canvas, fname);
+    };
+    img.src = state.src;
+  }
+
+  /* per-product download buttons (event delegation, since they're built above) */
+  $("productStage").addEventListener("click", function(e){
+    var btn = e.target.closest ? e.target.closest(".miniDl") : null;
+    if(!btn || btn.disabled) return;
+    var i = parseInt(btn.dataset.i, 10);
+    var p = PRODUCTS[i];
+    if(!p) return;
+    downloadProductAtSize(p);
+  });
+
+  function render(){
+    var u = $("unit").value, lbl = LBL[u];
+    var rep = num($("rep"));
+    markChips($("repChips"), rep);
+    markChips($("viewChips"), state.view);
+
+    var repIn = rep * TO_IN[u];
+    var viewIn = state.view * TO_IN[u];
+    var ready = !!state.src && repIn > 0;
+
+    var miniBtns = document.querySelectorAll(".miniDl");
+    for(var mi = 0; mi < miniBtns.length; mi++){ miniBtns[mi].disabled = !state.src; }
+
+    /* stats */
+    if(ready){
+      var ratio = state.th / state.tw;
+      var dpi = Math.round(state.tw / repIn);
+      $("sTile").textContent = fmt(state.tw) + " x " + fmt(state.th);
+      $("sRep").textContent = trim(rep) + " " + lbl;
+      $("sDpi").textContent = fmt(dpi) + " DPI";
+      $("sShape").textContent = Math.abs(ratio - 1) < 0.01 ? "Square" : ratio > 1 ? "Tall" : "Wide";
+
+      if(dpi < 150){
+        $("tip").textContent = "At this repeat size your tile is only " + fmt(dpi) + " DPI, too low to print. Make the repeat smaller or redraw the tile larger.";
+      } else if(dpi < 300){
+        $("tip").textContent = "This works out to " + fmt(dpi) + " DPI. Printers usually ask for 300, so shrink the repeat or export the tile larger.";
+      } else {
+        $("tip").textContent = "Looking good at " + fmt(dpi) + " DPI. Now check for seam lines, empty gaps and motifs bunching in one spot.";
+      }
+    } else {
+      $("sTile").textContent = "No tile";
+      $("sRep").textContent = trim(rep) + " " + lbl;
+      $("sDpi").textContent = "0 DPI";
+      $("sShape").textContent = "-";
+      $("tip").textContent = "Add a tile to see how your pattern holds up in repeat.";
+    }
+
+    /* repeat stage */
+    var st = $("repeatStage"), gl = $("gridlines");
+    if(ready && state.mode === "repeat"){
+      var ppi = st.clientWidth / viewIn;
+      var tW = repIn * ppi, tH = tW * (state.th / state.tw);
+      st.style.backgroundImage = "url(" + state.src + ")";
+      st.style.backgroundSize = tW + "px " + tH + "px";
+      gl.style.backgroundImage =
+        "linear-gradient(to right, rgba(222,110,69,.55) 1px, transparent 1px)," +
+        "linear-gradient(to bottom, rgba(222,110,69,.55) 1px, transparent 1px)";
+      gl.style.backgroundSize = tW + "px " + tH + "px";
+    } else if(!ready){
+      st.style.backgroundImage = "none";
+      gl.style.backgroundImage = "none";
+    }
+
+    /* product stage */
+    if(state.mode === "products"){
+      var box = $("productStage");
+      var avail = box.clientWidth || 560;
+      var pppi = Math.min(24, Math.max((avail - 44) / 12.2, 12));
+      PRODUCTS.forEach(function(p, i){
+        var el = $("sw" + i);
+        el.style.width = (p.w * pppi) + "px";
+        el.style.height = (p.h * pppi) + "px";
+        if(ready){
+          var tw = repIn * pppi, th = tw * (state.th / state.tw);
+          el.style.backgroundImage = "url(" + state.src + ")";
+          el.style.backgroundSize = tw + "px " + th + "px";
+        } else {
+          el.style.backgroundImage = "none";
+        }
+      });
+    }
+  }
+
+  buildAllChips();
+  setMode("repeat");
+})();
+</script>
+</body>
+</html>
