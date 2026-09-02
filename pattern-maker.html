@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pattern Maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF6EF; --card:#FFFFFF; --edge:#EFE3D6; --field:#FDFAF6;
+    --ink:#171514; --panel:#1F1D1B; --tile:#2C2926; --bar:#0F0E0D;
+    --orange:#DE6E45; --peach:#EFA98D; --muted:#8C8781; --label:#9A938C;
+    --serif:"Playfair Display", Georgia, "Times New Roman", serif;
+    --sans:"DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+
+  .topbar{background:var(--bar);padding:15px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .wordmark{font-family:var(--serif);font-style:italic;font-weight:700;font-size:22px;color:#EBB694;}
+  .tagline{font-size:11.5px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#F5EFE8;}
+
+  main{max-width:1120px;margin:0 auto;padding:40px 22px 70px;}
+  h1{font-family:var(--serif);font-weight:700;font-size:clamp(32px,5.4vw,52px);line-height:1.08;text-align:center;margin:0 0 8px;}
+  h1 em{font-style:italic;color:var(--orange);}
+  .sub{text-align:center;color:var(--muted);margin:0 0 30px;font-size:16px;}
+
+  .layout{display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:start;}
+  @media (max-width:940px){ .layout{grid-template-columns:1fr;} }
+  .col > * + *{margin-top:20px;}
+  .sticky{position:sticky;top:18px;}
+  @media (max-width:940px){ .sticky{position:static;} }
+
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:22px;}
+  .cardhead{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:700;font-size:19px;margin:0 0 16px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--orange);flex:none;}
+  .label{display:block;font-size:11.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--label);margin-bottom:7px;}
+  .hint{font-size:12.5px;color:var(--label);margin:7px 0 0;}
+  .stack > * + *{margin-top:15px;}
+  .two{display:flex;gap:11px;flex-wrap:wrap;}
+  .two > *{flex:1 1 110px;min-width:100px;}
+
+  input[type="number"], select{
+    width:100%;font-family:var(--sans);font-size:16px;font-weight:500;color:var(--ink);
+    background:var(--field);border:1px solid var(--edge);border-radius:10px;padding:10px 12px;appearance:none;
+  }
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%238C8781'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;}
+  input[type="number"]:focus, select:focus{outline:2px solid var(--orange);outline-offset:1px;border-color:transparent;}
+
+  input[type="range"]{width:100%;accent-color:var(--orange);}
+
+  .btn{
+    font-family:var(--sans);font-size:13.5px;font-weight:500;color:#fff;background:var(--ink);
+    border:0;border-radius:10px;padding:11px 16px;cursor:pointer;width:100%;
+  }
+  .btn:hover{background:#332F2C;}
+  .btn.accent{background:var(--orange);}
+  .btn.accent:hover{background:#C95F38;}
+  .btn.ghost{background:var(--field);color:var(--ink);border:1px solid var(--edge);}
+  .btn.ghost:hover{border-color:var(--orange);color:var(--orange);}
+  .btn:disabled{opacity:.4;cursor:default;}
+  .btn:focus-visible{outline:2px solid var(--orange);outline-offset:2px;}
+  .btnrow{display:flex;gap:9px;}
+
+  .drop{border:1.5px dashed #DCCDBE;border-radius:12px;background:var(--field);padding:18px 14px;text-align:center;cursor:pointer;}
+  .drop.over{border-color:var(--orange);background:#FCEFE7;}
+  .drop p{margin:0;font-size:13px;color:var(--muted);}
+  .drop b{display:block;font-size:14.5px;color:var(--ink);font-weight:500;margin-bottom:3px;}
+  .drop:focus-visible{outline:2px solid var(--orange);outline-offset:2px;}
+
+  .motifs{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:14px;}
+  .motif{
+    position:relative;aspect-ratio:1;border:1.5px solid var(--edge);border-radius:10px;background:var(--field) center/74% no-repeat;
+    cursor:pointer;padding:0;
+  }
+  .motif:hover{border-color:var(--orange);}
+  .motif.on{border-color:var(--orange);box-shadow:0 0 0 2px rgba(222,110,69,.18);}
+  .motif:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+
+  .swatches{display:flex;flex-wrap:wrap;gap:8px;}
+  .sw{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--edge);cursor:pointer;padding:0;}
+  .sw.on{border-color:var(--orange);box-shadow:0 0 0 2px rgba(222,110,69,.18);}
+  .sw:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+  .sw.clear{background:
+    linear-gradient(45deg,#E4DCD3 25%,transparent 25%,transparent 75%,#E4DCD3 75%),
+    linear-gradient(45deg,#E4DCD3 25%,#fff 25%,#fff 75%,#E4DCD3 75%);
+    background-size:12px 12px;background-position:0 0,6px 6px;}
+
+  .colorrow{display:flex;gap:10px;align-items:center;margin-top:13px;}
+  input[type="color"]{
+    width:42px;height:42px;flex:none;padding:0;border:1.5px solid var(--edge);
+    border-radius:50%;background:none;cursor:pointer;overflow:hidden;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper{padding:0;}
+  input[type="color"]::-webkit-color-swatch{border:0;border-radius:50%;}
+  input[type="color"]::-moz-color-swatch{border:0;border-radius:50%;}
+  input[type="color"]:focus-visible{outline:2px solid var(--orange);outline-offset:2px;}
+  .hexwrap{
+    flex:1;display:flex;align-items:center;gap:2px;background:var(--field);
+    border:1px solid var(--edge);border-radius:10px;padding:0 12px;
+  }
+  .hexwrap:focus-within{outline:2px solid var(--orange);outline-offset:1px;border-color:transparent;}
+  .hash{color:var(--label);font-size:16px;font-weight:500;}
+  .hexwrap input{
+    flex:1;min-width:0;border:0;background:none;padding:10px 0;
+    font-family:var(--sans);font-size:16px;font-weight:500;color:var(--ink);
+    text-transform:uppercase;letter-spacing:.04em;
+  }
+  .hexwrap input:focus{outline:none;}
+
+  .rowlabel{display:flex;justify-content:space-between;align-items:baseline;}
+  .rowlabel span:last-child{font-size:12.5px;color:var(--muted);}
+
+  /* dark panel */
+  .panel{background:var(--panel);border-radius:16px;padding:22px;color:#F5EFE8;}
+  .panel .cardhead{color:#fff;margin-bottom:14px;}
+  .mini{font-size:11.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#A69D95;}
+  .stages{display:flex;gap:16px;flex-wrap:wrap;}
+  .stagecol{flex:1 1 270px;min-width:0;}
+  .stagecol > .mini{display:block;margin-bottom:8px;}
+
+  .canvaswrap{position:relative;background:var(--field);border-radius:11px;overflow:hidden;aspect-ratio:1;}
+  .canvaswrap canvas{display:block;width:100%;height:100%;touch-action:none;}
+  .checker{background:
+    linear-gradient(45deg,#E4DCD3 25%,transparent 25%,transparent 75%,#E4DCD3 75%),
+    linear-gradient(45deg,#E4DCD3 25%,#FDFAF6 25%,#FDFAF6 75%,#E4DCD3 75%);
+    background-size:16px 16px;background-position:0 0,8px 8px;}
+  .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;color:var(--label);font-size:13.5px;}
+  .stagefoot{font-size:12.5px;color:#A69D95;margin:9px 0 0;}
+
+  .tip{display:flex;gap:10px;align-items:flex-start;background:var(--tile);border-radius:10px;padding:12px 14px;margin-top:16px;font-size:13.5px;color:#E4DBD3;}
+
+  .foot{text-align:center;color:var(--label);font-size:13px;margin:30px 0 0;}
+  .credit{text-align:center;font-size:13.5px;color:var(--muted);margin:16px 0 0;padding-top:16px;border-top:1px solid var(--edge);}
+  .credit a{color:var(--orange);text-decoration:none;font-weight:500;}
+  .credit a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="wordmark">Occasionalish</span>
+  <span class="tagline">Your First Stationery Product</span>
+</div>
+
+<main>
+  <h1>The <em>Pattern</em> Maker</h1>
+  <p class="sub">Place your motifs, and every edge wraps for you. The tile comes out seamless</p>
+
+  <div class="layout">
+
+    <div class="col">
+
+      <section class="card">
+        <p class="cardhead"><i class="dot"></i>Your Motifs</p>
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload a motif">
+          <p><b>Drop a motif here</b>PNG with a see through background works best</p>
+        </div>
+        <div class="motifs" id="motifs"></div>
+        <p class="hint">Click a motif to drop one onto the tile, then drag it where you want.</p>
+        <input type="file" id="file" accept="image/png,image/webp,image/jpeg" multiple hidden>
+        <p style="margin-top:13px"><button class="btn ghost" id="scatter">Scatter 10 of this motif</button></p>
+      </section>
+
+      <section class="card" id="selCard">
+        <p class="cardhead"><i class="dot"></i>Selected Motif</p>
+        <div id="selNone"><p class="hint" style="margin:0">Nothing selected. Click a motif on the tile, then use the handles on it or the sliders here.</p></div>
+        <div id="selCtrl" class="stack" hidden>
+          <div>
+            <div class="rowlabel"><span class="label">Size</span><span id="vSize">18%</span></div>
+            <input type="range" id="rSize" min="3" max="70" value="18">
+          </div>
+          <div>
+            <div class="rowlabel"><span class="label">Angle</span><span id="vRot">0&deg;</span></div>
+            <input type="range" id="rRot" min="0" max="359" value="0">
+          </div>
+          <div class="btnrow">
+            <button class="btn ghost" id="dupe">Duplicate</button>
+            <button class="btn ghost" id="del">Delete</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <p class="cardhead"><i class="dot"></i>Background</p>
+        <div class="swatches" id="swatches"></div>
+        <div class="colorrow">
+          <input type="color" id="picker" value="#FBF6EF" aria-label="Pick a background colour">
+          <div class="hexwrap">
+            <span class="hash">#</span>
+            <input type="text" id="hex" value="FBF6EF" maxlength="7" spellcheck="false" autocomplete="off" aria-label="Hex code">
+          </div>
+        </div>
+        <p class="hint">Tap the circle for a colour wheel, or paste a hex code from your brand palette.</p>
+        <p style="margin-top:14px"><button class="btn ghost" id="clear">Clear the tile</button></p>
+      </section>
+
+      <section class="card">
+        <p class="cardhead"><i class="dot"></i>Export</p>
+        <div class="stack">
+          <div class="two">
+            <div>
+              <label class="label" for="rep">Repeat size (in)</label>
+              <input type="number" id="rep" value="6" min="1" step="0.5">
+            </div>
+            <div>
+              <label class="label" for="dpi">DPI</label>
+              <input type="number" id="dpi" value="300" min="72" step="1">
+            </div>
+          </div>
+          <p class="hint" id="exportInfo">Exports at 1800 x 1800 px</p>
+          <button class="btn accent" id="download">Download the tile</button>
+          <p class="hint">Motifs are drawn from your uploaded files, so upload them large. Small files will look soft when the tile is exported big.</p>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="col">
+      <section class="panel sticky">
+        <p class="cardhead"><i class="dot"></i>Your Tile</p>
+
+        <div class="stages">
+          <div class="stagecol">
+            <span class="mini">Edit here</span>
+            <div class="canvaswrap" id="editWrap">
+              <canvas id="edit"></canvas>
+              <div class="empty" id="empty">Add a motif to start</div>
+            </div>
+            <p class="stagefoot">Drag to move. Circle on top rotates, square corner resizes. Hold Shift to snap the angle.</p>
+          </div>
+          <div class="stagecol">
+            <span class="mini">In repeat</span>
+            <div class="canvaswrap"><canvas id="prev"></canvas></div>
+            <p class="stagefoot">Three by three, updating as you work.</p>
+          </div>
+        </div>
+
+        <div class="tip"><span>&#128161;</span><span id="tip">Spread motifs out evenly and avoid leaving one large empty corner. Gaps show up much more once the tile repeats.</span></div>
+      </section>
+    </div>
+
+  </div>
+
+  <p class="foot">Everything happens on your computer. No file is uploaded anywhere.</p>
+  <p class="credit">By <a href="https://www.occasionalish.com/" target="_blank" rel="noopener">Occasionalish</a> &nbsp;&bull;&nbsp; Your First Stationery Product</p>
+</main>
+
+<script>
+(function(){
+  var BGS = ["none", "#FBF6EF", "#FFFFFF", "#F3E9DD", "#E8EDE6", "#EDE6F0", "#1F1D1B"];
+
+  var state = { motifs:[], active:0, items:[], sel:-1, bg:"#FBF6EF" };
+
+  function $(id){ return document.getElementById(id); }
+  function mod1(v){ return ((v % 1) + 1) % 1; }
+
+  /* ---------- built in motifs ---------- */
+  function shapeCanvas(kind){
+    var n = 300, c = document.createElement("canvas");
+    c.width = n; c.height = n;
+    var x = c.getContext("2d");
+    x.translate(n/2, n/2);
+    if(kind === "leaf"){
+      x.beginPath(); x.ellipse(0, -20, 62, 105, 0, 0, Math.PI*2);
+      x.fillStyle = "#DE6E45"; x.fill();
+      x.beginPath(); x.moveTo(0, 80); x.lineTo(0, 140);
+      x.strokeStyle = "#B9AEA3"; x.lineWidth = 13; x.lineCap = "round"; x.stroke();
+    } else if(kind === "flower"){
+      for(var i = 0; i < 6; i++){
+        x.save(); x.rotate(i * Math.PI/3);
+        x.beginPath(); x.ellipse(0, -62, 30, 62, 0, 0, Math.PI*2);
+        x.fillStyle = "#EFA98D"; x.fill(); x.restore();
+      }
+      x.beginPath(); x.arc(0, 0, 32, 0, Math.PI*2);
+      x.fillStyle = "#DE6E45"; x.fill();
+    } else if(kind === "dot"){
+      x.beginPath(); x.arc(0, 0, 92, 0, Math.PI*2);
+      x.fillStyle = "#C9BFB4"; x.fill();
+    } else {
+      x.strokeStyle = "#8C8781"; x.lineWidth = 12; x.lineCap = "round";
+      x.beginPath(); x.moveTo(0, 130); x.lineTo(0, -120); x.stroke();
+      for(var k = -1; k <= 1; k += 2){
+        for(var j = 0; j < 3; j++){
+          x.beginPath();
+          x.moveTo(0, 60 - j*70);
+          x.quadraticCurveTo(k*70, 30 - j*70, k*42, -25 - j*70);
+          x.stroke();
+        }
+      }
+    }
+    return c.toDataURL("image/png");
+  }
+
+  function addMotif(src, select){
+    var img = new Image();
+    img.onload = function(){
+      state.motifs.push(img);
+      buildMotifs();
+      if(select){ state.active = state.motifs.length - 1; buildMotifs(); }
+    };
+    img.src = src;
+  }
+
+  function buildMotifs(){
+    var box = $("motifs");
+    box.innerHTML = "";
+    state.motifs.forEach(function(img, i){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "motif" + (i === state.active ? " on" : "");
+      b.style.backgroundImage = "url(" + img.src + ")";
+      b.title = "Add this motif to the tile";
+      b.addEventListener("click", function(){
+        state.active = i;
+        addItem(i, Math.random()*0.7 + 0.15, Math.random()*0.7 + 0.15);
+        buildMotifs();
+      });
+      box.appendChild(b);
+    });
+  }
+
+  ["leaf", "flower", "dot", "sprig"].forEach(function(k){ addMotif(shapeCanvas(k), false); });
+
+  /* ---------- items ---------- */
+  function addItem(m, x, y, s, r){
+    state.items.push({
+      m:m, x:mod1(x), y:mod1(y),
+      s: s || 0.18,
+      r: r === undefined ? Math.random()*Math.PI*2 : r
+    });
+    state.sel = state.items.length - 1;
+    $("empty").style.display = "none";
+    syncSel();
+    renderAll();
+  }
+
+  $("scatter").addEventListener("click", function(){
+    for(var i = 0; i < 10; i++){
+      addItem(state.active, Math.random(), Math.random(), 0.10 + Math.random()*0.13);
+    }
+    state.sel = -1; syncSel(); renderAll();
+  });
+
+  $("clear").addEventListener("click", function(){
+    state.items = []; state.sel = -1;
+    $("empty").style.display = "flex";
+    syncSel(); renderAll();
+  });
+
+  function syncSel(){
+    var on = state.sel >= 0 && state.items[state.sel];
+    $("selNone").hidden = !!on;
+    $("selCtrl").hidden = !on;
+    if(on){
+      var it = state.items[state.sel];
+      $("rSize").value = Math.round(it.s * 100);
+      $("vSize").textContent = Math.round(it.s * 100) + "%";
+      $("rRot").value = Math.round(it.r * 180 / Math.PI) % 360;
+      $("vRot").textContent = $("rRot").value + "\u00b0";
+    }
+  }
+
+  $("rSize").addEventListener("input", function(){
+    if(state.sel < 0) return;
+    state.items[state.sel].s = this.value / 100;
+    $("vSize").textContent = this.value + "%";
+    renderAll();
+  });
+  $("rRot").addEventListener("input", function(){
+    if(state.sel < 0) return;
+    state.items[state.sel].r = this.value * Math.PI / 180;
+    $("vRot").textContent = this.value + "\u00b0";
+    renderAll();
+  });
+  $("dupe").addEventListener("click", function(){
+    if(state.sel < 0) return;
+    var it = state.items[state.sel];
+    addItem(it.m, mod1(it.x + 0.08), mod1(it.y + 0.08), it.s, it.r);
+  });
+  $("del").addEventListener("click", function(){
+    if(state.sel < 0) return;
+    state.items.splice(state.sel, 1);
+    state.sel = -1;
+    if(!state.items.length) $("empty").style.display = "flex";
+    syncSel(); renderAll();
+  });
+
+  /* ---------- background ---------- */
+  function setBg(col, src){
+    state.bg = col;
+    Array.prototype.forEach.call($("swatches").children, function(c){
+      c.classList.toggle("on", c.dataset.col === col);
+    });
+    if(col !== "none"){
+      if(src !== "picker") $("picker").value = col;
+      if(src !== "hex") $("hex").value = col.replace("#", "").toUpperCase();
+    }
+    $("editWrap").classList.toggle("checker", col === "none");
+    renderAll();
+  }
+
+  BGS.forEach(function(col){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.dataset.col = col;
+    b.className = "sw" + (col === state.bg ? " on" : "") + (col === "none" ? " clear" : "");
+    if(col !== "none") b.style.background = col;
+    b.title = col === "none" ? "See through" : col;
+    b.addEventListener("click", function(){ setBg(col); });
+    $("swatches").appendChild(b);
+  });
+
+  $("picker").addEventListener("input", function(){ setBg(this.value.toUpperCase(), "picker"); });
+
+  $("hex").addEventListener("input", function(){
+    var v = this.value.replace(/[^0-9a-fA-F]/g, "").slice(0, 6);
+    if(v.length === 3) v = v[0]+v[0]+v[1]+v[1]+v[2]+v[2];
+    if(v.length === 6) setBg("#" + v.toUpperCase(), "hex");
+  });
+  $("hex").addEventListener("blur", function(){
+    if(state.bg !== "none") this.value = state.bg.replace("#", "").toUpperCase();
+  });
+
+  /* ---------- drawing ---------- */
+  function drawTile(c, size){
+    c.clearRect(0, 0, size, size);
+    if(state.bg !== "none"){ c.fillStyle = state.bg; c.fillRect(0, 0, size, size); }
+    state.items.forEach(function(it){
+      var img = state.motifs[it.m];
+      if(!img) return;
+      var w = it.s * size, h = w * (img.naturalHeight / img.naturalWidth);
+      for(var dx = -1; dx <= 1; dx++){
+        for(var dy = -1; dy <= 1; dy++){
+          c.save();
+          c.translate((it.x + dx) * size, (it.y + dy) * size);
+          c.rotate(it.r);
+          c.drawImage(img, -w/2, -h/2, w, h);
+          c.restore();
+        }
+      }
+    });
+  }
+
+  function setup(canvas){
+    var box = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    var s = Math.max(box.width, 1);
+    canvas.width = Math.round(s * dpr);
+    canvas.height = Math.round(s * dpr);
+    var c = canvas.getContext("2d");
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.imageSmoothingQuality = "high";
+    return { c:c, size:s };
+  }
+
+  function renderAll(){
+    var e = setup($("edit"));
+    drawTile(e.c, e.size);
+
+    if(state.sel >= 0 && state.items[state.sel]){
+      var it = state.items[state.sel], img = state.motifs[it.m];
+      if(img){
+        var w = it.s * e.size, h = w * (img.naturalHeight / img.naturalWidth);
+        for(var dx = -1; dx <= 1; dx++){
+          for(var dy = -1; dy <= 1; dy++){
+            e.c.save();
+            e.c.translate((it.x + dx) * e.size, (it.y + dy) * e.size);
+            e.c.rotate(it.r);
+            e.c.strokeStyle = "#DE6E45"; e.c.lineWidth = 1.5;
+            e.c.strokeRect(-w/2, -h/2, w, h);
+
+            e.c.beginPath();
+            e.c.moveTo(0, -h/2); e.c.lineTo(0, -h/2 - HANDLE_GAP);
+            e.c.stroke();
+            e.c.beginPath();
+            e.c.arc(0, -h/2 - HANDLE_GAP, 6.5, 0, Math.PI*2);
+            e.c.fillStyle = "#fff"; e.c.fill(); e.c.stroke();
+
+            e.c.beginPath();
+            e.c.rect(w/2 - 5, h/2 - 5, 10, 10);
+            e.c.fillStyle = "#fff"; e.c.fill(); e.c.stroke();
+
+            e.c.restore();
+          }
+        }
+      }
+    }
+
+    var p = setup($("prev"));
+    var off = document.createElement("canvas");
+    var tsz = Math.round(p.size / 3 * (window.devicePixelRatio || 1));
+    off.width = tsz; off.height = tsz;
+    var oc = off.getContext("2d");
+    oc.imageSmoothingQuality = "high";
+    drawTile(oc, tsz);
+    p.c.clearRect(0, 0, p.size, p.size);
+    for(var r = 0; r < 3; r++){
+      for(var col = 0; col < 3; col++){
+        p.c.drawImage(off, col * p.size/3, r * p.size/3, p.size/3, p.size/3);
+      }
+    }
+
+    updateExportInfo();
+  }
+
+  /* ---------- dragging ---------- */
+  var canvas = $("edit"), drag = null;
+  var HANDLE_GAP = 24, HIT = 14;
+
+  function pos(e){
+    var b = canvas.getBoundingClientRect();
+    return { x:(e.clientX - b.left) / b.width, y:(e.clientY - b.top) / b.height };
+  }
+
+  function hit(nx, ny){
+    for(var i = state.items.length - 1; i >= 0; i--){
+      var it = state.items[i], img = state.motifs[it.m];
+      if(!img) continue;
+      var w = it.s, h = it.s * (img.naturalHeight / img.naturalWidth);
+      var reach = Math.max(w, h) / 2;
+      for(var dx = -1; dx <= 1; dx++){
+        for(var dy = -1; dy <= 1; dy++){
+          if(Math.abs(nx - (it.x + dx)) <= reach && Math.abs(ny - (it.y + dy)) <= reach){
+            return { i:i, gx:(it.x + dx) - nx, gy:(it.y + dy) - ny };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  function localToGlobal(cx, cy, r, lx, ly){
+    return {
+      x: cx + lx*Math.cos(r) - ly*Math.sin(r),
+      y: cy + lx*Math.sin(r) + ly*Math.cos(r)
+    };
+  }
+
+  function geom(it){
+    var img = state.motifs[it.m];
+    var size = canvas.getBoundingClientRect().width;
+    var w = it.s * size;
+    return { size:size, w:w, h:w * (img.naturalHeight / img.naturalWidth) };
+  }
+
+  function nearestCenter(it, px, py){
+    var size = canvas.getBoundingClientRect().width, best = null, bd = Infinity;
+    for(var dx = -1; dx <= 1; dx++){
+      for(var dy = -1; dy <= 1; dy++){
+        var cx = (it.x + dx) * size, cy = (it.y + dy) * size;
+        var d = (cx - px)*(cx - px) + (cy - py)*(cy - py);
+        if(d < bd){ bd = d; best = { x:cx, y:cy }; }
+      }
+    }
+    return best;
+  }
+
+  function handleHit(px, py){
+    if(state.sel < 0 || !state.items[state.sel]) return null;
+    var it = state.items[state.sel];
+    if(!state.motifs[it.m]) return null;
+    var g = geom(it);
+    for(var dx = -1; dx <= 1; dx++){
+      for(var dy = -1; dy <= 1; dy++){
+        var cx = (it.x + dx) * g.size, cy = (it.y + dy) * g.size;
+        var rp = localToGlobal(cx, cy, it.r, 0, -g.h/2 - HANDLE_GAP);
+        if(Math.hypot(rp.x - px, rp.y - py) <= HIT) return "rotate";
+        var sp = localToGlobal(cx, cy, it.r, g.w/2, g.h/2);
+        if(Math.hypot(sp.x - px, sp.y - py) <= HIT) return "size";
+      }
+    }
+    return null;
+  }
+
+  canvas.addEventListener("pointerdown", function(e){
+    var p = pos(e), size = canvas.getBoundingClientRect().width;
+    var mode = handleHit(p.x * size, p.y * size);
+    if(mode){
+      drag = { mode:mode, i:state.sel };
+      canvas.setPointerCapture(e.pointerId);
+      return;
+    }
+    var h = hit(p.x, p.y);
+    state.sel = h ? h.i : -1;
+    drag = h ? { mode:"move", i:h.i, gx:h.gx, gy:h.gy } : null;
+    if(h) canvas.setPointerCapture(e.pointerId);
+    syncSel(); renderAll();
+  });
+
+  canvas.addEventListener("pointermove", function(e){
+    var p = pos(e), size = canvas.getBoundingClientRect().width;
+    var px = p.x * size, py = p.y * size;
+
+    if(!drag){
+      var over = handleHit(px, py);
+      canvas.style.cursor = over === "rotate" ? "crosshair"
+        : over === "size" ? "nwse-resize"
+        : hit(p.x, p.y) ? "grab" : "default";
+      return;
+    }
+
+    var it = state.items[drag.i];
+    if(!it) return;
+
+    if(drag.mode === "move"){
+      it.x = mod1(p.x + drag.gx);
+      it.y = mod1(p.y + drag.gy);
+    } else {
+      var c = nearestCenter(it, px, py);
+      if(drag.mode === "rotate"){
+        var a = Math.atan2(py - c.y, px - c.x) + Math.PI/2;
+        if(e.shiftKey) a = Math.round(a / (Math.PI/12)) * (Math.PI/12);
+        it.r = a;
+      } else {
+        var img = state.motifs[it.m];
+        var asp = img.naturalHeight / img.naturalWidth;
+        var d = Math.hypot(px - c.x, py - c.y);
+        var w = 2 * d / Math.sqrt(1 + asp*asp);
+        it.s = Math.max(0.03, Math.min(0.7, w / size));
+      }
+      syncSel();
+    }
+    renderAll();
+  });
+  canvas.addEventListener("pointerup", function(){ drag = null; });
+  canvas.addEventListener("pointercancel", function(){ drag = null; });
+
+  document.addEventListener("keydown", function(e){
+    if((e.key === "Delete" || e.key === "Backspace") && state.sel >= 0 &&
+        document.activeElement.tagName !== "INPUT"){
+      e.preventDefault(); $("del").click();
+    }
+  });
+
+  /* ---------- upload ---------- */
+  function readFiles(list){
+    Array.prototype.forEach.call(list, function(f){
+      if(!/^image\//.test(f.type)) return;
+      var r = new FileReader();
+      r.onload = function(ev){ addMotif(ev.target.result, true); };
+      r.readAsDataURL(f);
+    });
+  }
+  var drop = $("drop");
+  drop.addEventListener("click", function(){ $("file").click(); });
+  drop.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); $("file").click(); } });
+  drop.addEventListener("dragover", function(e){ e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", function(){ drop.classList.remove("over"); });
+  drop.addEventListener("drop", function(e){ e.preventDefault(); drop.classList.remove("over"); readFiles(e.dataTransfer.files); });
+  $("file").addEventListener("change", function(){ readFiles(this.files); });
+
+  /* ---------- export ---------- */
+  function exportPx(){
+    var rep = parseFloat($("rep").value) || 6;
+    var dpi = parseFloat($("dpi").value) || 300;
+    return Math.min(Math.round(rep * dpi), 6000);
+  }
+  function updateExportInfo(){
+    var px = exportPx();
+    $("exportInfo").textContent = "Exports at " + px.toLocaleString() + " x " + px.toLocaleString() + " px";
+  }
+  $("rep").addEventListener("input", updateExportInfo);
+  $("dpi").addEventListener("input", updateExportInfo);
+
+  $("download").addEventListener("click", function(){
+    if(!state.items.length) return;
+    var px = exportPx();
+    var out = document.createElement("canvas");
+    out.width = px; out.height = px;
+    var c = out.getContext("2d");
+    c.imageSmoothingQuality = "high";
+    drawTile(c, px);
+    var a = document.createElement("a");
+    a.download = "seamless-tile-" + px + "px.png";
+    a.href = out.toDataURL("image/png");
+    a.click();
+  });
+
+  window.addEventListener("resize", renderAll);
+  syncSel();
+  setTimeout(renderAll, 60);
+})();
+</script>
+</body>
+</html>
