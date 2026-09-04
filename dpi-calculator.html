@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DPI Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF6EF;
+    --card:#FFFFFF;
+    --edge:#EFE3D6;
+    --field:#FDFAF6;
+    --ink:#171514;
+    --panel:#1F1D1B;
+    --tile:#2C2926;
+    --bar:#0F0E0D;
+    --orange:#DE6E45;
+    --peach:#EFA98D;
+    --muted:#8C8781;
+    --label:#9A938C;
+    --serif:"Playfair Display", Georgia, "Times New Roman", serif;
+    --sans:"DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* top bar */
+  .topbar{
+    background:var(--bar);
+    padding:15px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+  }
+  .wordmark{
+    font-family:var(--serif);
+    font-style:italic;
+    font-weight:700;
+    font-size:22px;
+    color:#EBB694;
+    letter-spacing:.01em;
+  }
+  .tagline{
+    font-size:11.5px;
+    font-weight:500;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#F5EFE8;
+  }
+
+  main{max-width:1000px;margin:0 auto;padding:46px 22px 70px;}
+
+  h1{
+    font-family:var(--serif);
+    font-weight:700;
+    font-size:clamp(34px,6vw,58px);
+    line-height:1.08;
+    text-align:center;
+    margin:0 0 10px;
+  }
+  h1 em{font-style:italic;color:var(--orange);}
+
+  .sub{
+    text-align:center;
+    color:var(--muted);
+    margin:0 0 34px;
+    font-size:16px;
+  }
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  @media (max-width:820px){ .grid{grid-template-columns:1fr;} }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--edge);
+    border-radius:16px;
+    padding:26px;
+  }
+
+  .cardhead{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:var(--serif);
+    font-weight:700;
+    font-size:20px;
+    margin:0 0 20px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--orange);flex:none;}
+
+  .label{
+    display:block;
+    font-size:11.5px;
+    font-weight:500;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--label);
+    margin-bottom:7px;
+  }
+  .hint{font-size:12.5px;color:var(--label);margin:6px 0 0;}
+
+  .stack > * + *{margin-top:17px;}
+  .two{display:flex;gap:14px;flex-wrap:wrap;}
+  .two > *{flex:1 1 130px;min-width:118px;}
+
+  input[type="number"], select{
+    width:100%;
+    font-family:var(--sans);
+    font-size:17px;
+    font-weight:500;
+    color:var(--ink);
+    background:var(--field);
+    border:1px solid var(--edge);
+    border-radius:10px;
+    padding:12px 14px;
+    appearance:none;
+  }
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%238C8781'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:34px;}
+  input[type="number"]:focus, select:focus{outline:2px solid var(--orange);outline-offset:1px;border-color:transparent;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{
+    font-family:var(--sans);
+    font-size:12.5px;
+    font-weight:500;
+    color:var(--ink);
+    background:var(--field);
+    border:1px solid var(--edge);
+    border-radius:999px;
+    padding:7px 14px;
+    cursor:pointer;
+  }
+  .chip:hover{border-color:var(--orange);color:var(--orange);}
+  .chip.on{background:var(--orange);border-color:var(--orange);color:#fff;}
+  .chip:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+
+  /* toggle */
+  .switchrow{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .switch{
+    width:48px;height:27px;border-radius:999px;
+    background:#DED6CC;border:0;padding:3px;cursor:pointer;
+    display:flex;align-items:center;flex:none;
+  }
+  .knob{width:21px;height:21px;border-radius:50%;background:#fff;transition:transform .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .switch[aria-checked="true"]{background:var(--orange);}
+  .switch[aria-checked="true"] .knob{transform:translateX(21px);}
+  .switch:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+
+  .bleedwrap[hidden]{display:none;}
+
+  /* results panel */
+  .panel{
+    background:var(--panel);
+    border-radius:16px;
+    padding:26px;
+    margin-top:22px;
+    color:#F5EFE8;
+  }
+  .panel .cardhead{color:#fff;margin-bottom:20px;}
+
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  @media (max-width:820px){ .tiles{grid-template-columns:1fr 1fr;} }
+  .tile{background:var(--tile);border-radius:11px;padding:15px 16px;}
+  .tile span{
+    display:block;font-size:11px;font-weight:500;letter-spacing:.12em;
+    text-transform:uppercase;color:#A69D95;margin-bottom:5px;
+  }
+  .tile strong{
+    font-family:var(--serif);font-weight:700;
+    font-size:clamp(20px,3.4vw,27px);line-height:1.15;color:#fff;
+  }
+  .tile.alt strong{color:var(--peach);}
+
+  .meter{margin-top:20px;}
+  .meterhead{display:flex;justify-content:space-between;font-size:13px;color:#BDB4AC;margin-bottom:7px;}
+  .track{height:5px;border-radius:999px;background:#3A3532;overflow:hidden;}
+  .fill{height:100%;background:var(--orange);width:0;transition:width .25s ease;}
+
+  .tip{
+    display:flex;gap:11px;align-items:flex-start;
+    background:var(--tile);border-radius:11px;
+    padding:14px 16px;margin-top:18px;font-size:14px;color:#E4DBD3;
+  }
+
+  .rule{height:1px;background:#3A3532;margin:22px 0 18px;}
+
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  @media (max-width:820px){ .cols{grid-template-columns:1fr;} }
+  .col span{
+    display:block;font-size:11px;font-weight:500;letter-spacing:.12em;
+    text-transform:uppercase;color:#A69D95;margin-bottom:9px;
+  }
+  .line{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:3px 0;color:#E4DBD3;}
+  .line b{font-weight:500;color:#fff;}
+
+  /* file check */
+  .wide{margin-top:22px;}
+  .out{
+    background:var(--field);
+    border:1px solid var(--edge);
+    border-radius:12px;
+    padding:16px 18px;
+    margin-top:18px;
+  }
+  .out span{display:block;font-size:11.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--label);margin-bottom:5px;}
+  .out strong{font-family:var(--serif);font-weight:700;font-size:25px;}
+  .out p{margin:8px 0 0;font-size:13.5px;color:var(--muted);}
+
+  .foot{text-align:center;color:var(--label);font-size:13px;margin:30px 0 0;}
+
+  .credit{
+    text-align:center;
+    font-size:13.5px;
+    color:var(--muted);
+    margin:16px 0 0;
+    padding-top:16px;
+    border-top:1px solid var(--edge);
+  }
+  .credit a{color:var(--orange);text-decoration:none;font-weight:500;}
+  .credit a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="wordmark">Occasionalish</span>
+  <span class="tagline">Free resource</span>
+</div>
+
+<main>
+  <h1>The <em>DPI</em> Calculator</h1>
+  <p class="sub">Know exactly what pixel size your file needs before you print</p>
+
+  <div class="grid">
+
+    <section class="card">
+      <p class="cardhead"><i class="dot"></i>Print Size</p>
+      <div class="stack">
+        <div>
+          <label class="label" for="unit">Units</label>
+          <select id="unit">
+            <option value="in" selected>Inches</option>
+            <option value="cm">Centimetres</option>
+            <option value="mm">Millimetres</option>
+          </select>
+        </div>
+        <div class="two">
+          <div>
+            <label class="label" for="w">Width</label>
+            <input type="number" id="w" value="4" min="0" step="0.01">
+          </div>
+          <div>
+            <label class="label" for="h">Height</label>
+            <input type="number" id="h" value="6" min="0" step="0.01">
+          </div>
+        </div>
+        <div>
+          <span class="label">Common stationery sizes</span>
+          <div class="chips" id="presets"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <p class="cardhead"><i class="dot"></i>Resolution &amp; Bleed</p>
+      <div class="stack">
+        <div>
+          <span class="label">Quick pick</span>
+          <div class="chips" id="dpiChips"></div>
+        </div>
+        <div>
+          <label class="label" for="dpi">DPI</label>
+          <input type="number" id="dpi" value="300" min="1" step="1">
+          <p class="hint">300 is the standard for printed stationery</p>
+        </div>
+        <div class="switchrow">
+          <span class="label" style="margin:0">Add bleed</span>
+          <button class="switch" id="bleedSwitch" role="switch" aria-checked="false" aria-label="Add bleed"><i class="knob"></i></button>
+        </div>
+        <div class="bleedwrap" id="bleedwrap" hidden>
+          <label class="label" for="bleed">Bleed on each side</label>
+          <input type="number" id="bleed" value="0.125" min="0" step="0.005">
+          <p class="hint">Extra artwork past the cut line so there are no white edges</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <section class="panel">
+    <p class="cardhead"><i class="dot"></i>Your Results</p>
+
+    <div class="tiles">
+      <div class="tile alt"><span>Canvas width</span><strong id="tW">1200 px</strong></div>
+      <div class="tile alt"><span>Canvas height</span><strong id="tH">1800 px</strong></div>
+      <div class="tile"><span>Total pixels</span><strong id="tMP">2.2 MP</strong></div>
+      <div class="tile"><span>At this DPI</span><strong id="tDpi">300</strong></div>
+    </div>
+
+    <div class="meter">
+      <div class="meterhead"><span>Print quality</span><span id="mLabel">Standard print</span></div>
+      <div class="track"><i class="fill" id="mFill"></i></div>
+    </div>
+
+    <div class="tip"><span>&#128161;</span><span id="tip">Set your canvas to this size before you start drawing.</span></div>
+
+    <div class="rule"></div>
+
+    <div class="cols">
+      <div class="col">
+        <span>Full canvas</span>
+        <div class="line">Pixels <b id="cCanvasPx">1200 x 1800</b></div>
+        <div class="line">Size <b id="cCanvasSize">4 x 6 in</b></div>
+      </div>
+      <div class="col">
+        <span>Trim line</span>
+        <div class="line">Pixels <b id="cTrimPx">1200 x 1800</b></div>
+        <div class="line">Size <b id="cTrimSize">4 x 6 in</b></div>
+      </div>
+      <div class="col">
+        <span>Safe zone</span>
+        <div class="line">Pixels <b id="cSafePx">1125 x 1725</b></div>
+        <div class="line">Size <b id="cSafeSize">3.75 x 5.75 in</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card wide">
+    <p class="cardhead"><i class="dot"></i>Already Have a File?</p>
+    <div class="two">
+      <div>
+        <label class="label" for="pw">Width in pixels</label>
+        <input type="number" id="pw" value="3000" min="1" step="1">
+      </div>
+      <div>
+        <label class="label" for="ph">Height in pixels</label>
+        <input type="number" id="ph" value="4500" min="1" step="1">
+      </div>
+      <div>
+        <label class="label" for="dpiB">Print at DPI</label>
+        <input type="number" id="dpiB" value="300" min="1" step="1">
+      </div>
+    </div>
+    <div class="out">
+      <span>Largest clean print size</span>
+      <strong id="bSize">10 x 15 in</strong>
+      <p id="bNote"></p>
+    </div>
+  </section>
+
+  <p class="foot">Sizes are rounded up to the next whole pixel. Always check your printer's own file guide before you send.</p>
+  <p class="credit">By <a href="https://www.occasionalish.com/" target="_blank" rel="noopener">Occasionalish</a> &nbsp;&bull;&nbsp; Your First Stationery Product</p>
+</main>
+
+<script>
+(function(){
+  var TO_IN = { in:1, cm:1/2.54, mm:1/25.4 };
+  var LBL = { in:"in", cm:"cm", mm:"mm" };
+  var BLEED_DEFAULT = { in:0.125, cm:0.3, mm:3 };
+
+  var PRESETS = [
+    { name:"Postcard 4 x 6", w:4, h:6 },
+    { name:"Card 4.25 x 5.5", w:4.25, h:5.5 },
+    { name:"Card 5 x 7", w:5, h:7 },
+    { name:"A6", w:105/25.4, h:148/25.4 },
+    { name:"A5", w:148/25.4, h:210/25.4 },
+    { name:"Sticker 2 x 2", w:2, h:2 },
+    { name:"Notebook 5.5 x 8.5", w:5.5, h:8.5 }
+  ];
+
+  var DPIS = [
+    { v:150, label:"150 draft" },
+    { v:300, label:"300 print" },
+    { v:600, label:"600 fine line art" },
+    { v:72,  label:"72 screen" }
+  ];
+
+  function $(id){ return document.getElementById(id); }
+  function num(el){ var n = parseFloat(el.value); return isFinite(n) && n > 0 ? n : 0; }
+  function fmt(n){ return Math.round(n).toLocaleString(); }
+  function trim(n){ return (Math.round(n*100)/100).toString(); }
+
+  /* preset chips */
+  PRESETS.forEach(function(p){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.textContent = p.name;
+    b.addEventListener("click", function(){
+      var u = $("unit").value;
+      $("w").value = trim(p.w / TO_IN[u]);
+      $("h").value = trim(p.h / TO_IN[u]);
+      render();
+    });
+    $("presets").appendChild(b);
+  });
+
+  /* dpi chips */
+  DPIS.forEach(function(d){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.dataset.v = d.v;
+    b.textContent = d.label;
+    b.addEventListener("click", function(){ $("dpi").value = d.v; render(); });
+    $("dpiChips").appendChild(b);
+  });
+
+  /* bleed toggle */
+  var sw = $("bleedSwitch");
+  sw.addEventListener("click", function(){
+    var on = sw.getAttribute("aria-checked") === "true";
+    sw.setAttribute("aria-checked", String(!on));
+    $("bleedwrap").hidden = on;
+    render();
+  });
+
+  $("unit").addEventListener("change", function(){
+    $("bleed").value = BLEED_DEFAULT[this.value];
+    render();
+  });
+
+  function render(){
+    var u = $("unit").value, lbl = LBL[u];
+    var w = num($("w")), h = num($("h")), dpi = num($("dpi"));
+    var on = sw.getAttribute("aria-checked") === "true";
+    var margin = BLEED_DEFAULT[u];
+    var bleed = on ? num($("bleed")) : 0;
+
+    Array.prototype.forEach.call($("dpiChips").children, function(c){
+      c.classList.toggle("on", parseFloat(c.dataset.v) === dpi);
+    });
+
+    if(!w || !h || !dpi){
+      $("tW").textContent = "0 px"; $("tH").textContent = "0 px";
+      $("tMP").textContent = "0 MP"; $("tDpi").textContent = "0";
+      $("mFill").style.width = "0%"; $("mLabel").textContent = "Waiting";
+      $("tip").textContent = "Fill in a width, height and DPI to see your pixel size.";
+      ["cCanvasPx","cCanvasSize","cTrimPx","cTrimSize","cSafePx","cSafeSize"].forEach(function(id){ $(id).textContent = "0"; });
+      return;
+    }
+
+    var canvasW = w + bleed*2, canvasH = h + bleed*2;
+    var safeW = Math.max(w - margin*2, 0), safeH = Math.max(h - margin*2, 0);
+
+    function px(v){ return Math.ceil(v * TO_IN[u] * dpi); }
+
+    var pW = px(canvasW), pH = px(canvasH);
+
+    $("tW").textContent = fmt(pW) + " px";
+    $("tH").textContent = fmt(pH) + " px";
+    $("tMP").textContent = (Math.round(pW*pH/1e5)/10) + " MP";
+    $("tDpi").textContent = dpi;
+
+    $("mFill").style.width = Math.min(dpi/300, 1)*100 + "%";
+    $("mLabel").textContent = dpi < 150 ? "Screen only" : dpi < 300 ? "Below print standard" : dpi < 600 ? "Standard print" : "High detail";
+
+    $("cCanvasPx").textContent = fmt(pW) + " x " + fmt(pH);
+    $("cCanvasSize").textContent = trim(canvasW) + " x " + trim(canvasH) + " " + lbl;
+    $("cTrimPx").textContent = fmt(px(w)) + " x " + fmt(px(h));
+    $("cTrimSize").textContent = trim(w) + " x " + trim(h) + " " + lbl;
+    $("cSafePx").textContent = fmt(px(safeW)) + " x " + fmt(px(safeH));
+    $("cSafeSize").textContent = trim(safeW) + " x " + trim(safeH) + " " + lbl;
+
+    var tip;
+    if(dpi < 150){
+      tip = "This is a screen resolution. A print at this setting will look soft and pixelated.";
+    } else if(dpi < 300){
+      tip = "Most printers ask for 300 DPI. Below that, thin lines and small text start to lose their edge.";
+    } else if(dpi >= 600){
+      tip = "600 DPI suits line art, thin type and foil files. The file will be large, so save a flattened copy for sending.";
+    } else if(on){
+      tip = "Build your artwork at the full canvas size. The printer cuts at the trim line, so keep anything you cannot lose inside the safe zone.";
+    } else {
+      tip = "Turn on bleed if your artwork runs all the way to the edge of the paper.";
+    }
+    $("tip").textContent = tip;
+  }
+
+  function renderB(){
+    var u = $("unit").value, lbl = LBL[u];
+    var pw = num($("pw")), ph = num($("ph")), dpi = num($("dpiB"));
+    if(!pw || !ph || !dpi){
+      $("bSize").textContent = "0 x 0 " + lbl;
+      $("bNote").textContent = "Fill in your pixel size and DPI.";
+      return;
+    }
+    var a = (pw/dpi)/TO_IN[u], b = (ph/dpi)/TO_IN[u];
+    $("bSize").textContent = trim(a) + " x " + trim(b) + " " + lbl;
+    $("bNote").textContent = dpi < 200
+      ? "This stretches your file past its clean size. It will print larger, but softer."
+      : "Printing bigger than this does not add detail. If you need more, export again from your original file.";
+  }
+
+  ["w","h","dpi","bleed"].forEach(function(id){ $(id).addEventListener("input", render); });
+  ["pw","ph","dpiB"].forEach(function(id){ $(id).addEventListener("input", renderB); });
+  $("unit").addEventListener("change", renderB);
+
+  render();
+  renderB();
+})();
+</script>
+</body>
+</html>

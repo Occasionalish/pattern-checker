@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Etsy Profit Calculator by Occasionalish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #FFF8F0;
+    color: #1a1a1a;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    background: #1a1a1a;
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .topbar-brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+
+  .topbar-brand em {
+    font-style: italic;
+    color: #F4A261;
+  }
+
+  .topbar-tag {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Page header ── */
+  .page-header {
+    text-align: center;
+    padding: 40px 20px 32px;
+  }
+
+  .page-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.6rem;
+    color: #1a1a1a;
+    line-height: 1.1;
+  }
+
+  .page-header h1 em {
+    font-style: italic;
+    color: #E85D26;
+  }
+
+  .page-header p {
+    font-size: 0.9rem;
+    color: #888;
+    margin-top: 8px;
+    font-weight: 300;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1.5px solid #eedfcf;
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.05rem;
+    margin-bottom: 18px;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #E85D26;
+    flex-shrink: 0;
+  }
+
+  .field { margin-bottom: 14px; }
+
+  .field label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 5px;
+  }
+
+  .field .hint {
+    font-size: 0.7rem;
+    color: #bbb;
+    margin-top: 3px;
+    font-weight: 300;
+  }
+
+  .input-wrap { position: relative; }
+
+  .input-wrap .symbol {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    color: #bbb;
+    pointer-events: none;
+  }
+
+  .input-wrap .pct { right: 12px; left: auto; }
+
+  input[type="number"] {
+    width: 100%;
+    padding: 9px 12px 9px 26px;
+    border: 1.5px solid #e8ddd3;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: #1a1a1a;
+    background: #FDFAF7;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input[type="number"]:focus {
+    outline: none;
+    border-color: #E85D26;
+    background: #fff;
+  }
+
+  input.no-symbol { padding-left: 12px; }
+  input.has-pct { padding-right: 28px; padding-left: 12px; }
+
+  /* Toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .toggle-row .toggle-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .toggle-row .toggle-hint { font-size: 0.68rem; color: #bbb; margin-top: 2px; }
+  .toggle-left { flex: 1; }
+
+  .toggle-switch {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+  .slider {
+    position: absolute;
+    inset: 0;
+    background: #e0d5cb;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .slider:before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .toggle-switch input:checked + .slider { background: #E85D26; }
+  .toggle-switch input:checked + .slider:before { transform: translateX(18px); }
+
+  .offsite-rate-row { display: none; margin-bottom: 14px; }
+  .offsite-rate-row.visible { display: block; }
+
+  /* Results */
+  .results-card {
+    grid-column: 1 / -1;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+  }
+
+  .results-card .card-title { color: #fff; }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .result-block {
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .result-block .r-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .result-block .r-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.55rem;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .r-value.accent  { color: #F4A261; }
+  .r-value.good    { color: #6FCF97; }
+  .r-value.bad     { color: #EB5757; }
+  .r-value.neutral { color: #fff; }
+
+  .nudge-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+  }
+
+  .nudge-icon { font-size: 1.1rem; }
+
+  .nudge-text {
+    font-size: 0.85rem;
+    color: #ccc;
+    line-height: 1.4;
+  }
+
+  .nudge-text strong { color: #fff; }
+
+  .divider {
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    margin: 18px 0;
+  }
+
+  .margin-bar-wrap { margin-bottom: 18px; }
+
+  .margin-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 6px;
+  }
+
+  .margin-bar-bg {
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .margin-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #E85D26, #F4A261);
+    transition: width 0.4s ease;
+  }
+
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .breakdown-block {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  .breakdown-block .b-title {
+    font-size: 0.72rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+  }
+
+  .b-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: #ccc;
+    margin-bottom: 6px;
+  }
+
+  .b-row:last-child { margin-bottom: 0; }
+  .b-row span:last-child { font-weight: 500; color: #fff; }
+  .b-row.total-row { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; margin-top: 4px; }
+  .b-row.total-row span { color: #F4A261; font-weight: 600; }
+
+  .reset-btn {
+    margin-top: 10px;
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    color: #888;
+    padding: 7px 18px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: block;
+    margin-left: auto;
+  }
+
+  .reset-btn:hover { border-color: #E85D26; color: #E85D26; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 0 20px;
+    font-size: 0.78rem;
+    color: #ccc;
+  }
+
+  .footer a {
+    color: #E85D26;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 620px) {
+    .layout { grid-template-columns: 1fr; }
+    .results-grid { grid-template-columns: repeat(2, 1fr); }
+    .bottom-row { grid-template-columns: 1fr; }
+    .page-header h1 { font-size: 1.9rem; }
+    .topbar { padding: 12px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-brand"><em>Occasionalish</em></div>
+  <div class="topbar-tag">Free Resource</div>
+</div>
+
+<!-- Header -->
+<div class="page-header">
+  <h1>Etsy <em>Profit</em> Calculator</h1>
+  <p>Know exactly what you take home on every order</p>
+</div>
+
+<div class="layout">
+
+  <!-- Pricing -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Pricing &amp; Shipping</div>
+    <div class="field">
+      <label>Listing Price</label>
+      <div class="input-wrap"><span class="symbol">$</span>
+        <input type="number" id="salePrice" value="0" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="field">
+      <label>Shipping You Charge Customer</label>
+      <div class="input-wrap"><span class="symbol">$</span>
+        <input type="number" id="shippingCharged" value="0" min="0" step="0.01">
+      </div>
+      <div class="hint">Enter 0 if you offer free shipping</div>
+    </div>
+    <div class="field">
+      <label>Shipping You Actually Pay</label>
+      <div class="input-wrap"><span class="symbol">$</span>
+        <input type="number" id="shippingActual" value="0" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="field">
+      <label>Orders Per Month</label>
+      <div class="input-wrap">
+        <input type="number" id="ordersPerMonth" value="0" min="0" step="1" class="no-symbol">
+      </div>
+      <div class="hint">Used to estimate your monthly profit</div>
+    </div>
+  </div>
+
+  <!-- Production Costs -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Product Costs</div>
+    <div class="field">
+      <label>Product Cost Per Item</label>
+      <div class="input-wrap"><span class="symbol">$</span>
+        <input type="number" id="productCost" value="0" min="0" step="0.01">
+      </div>
+      <div class="hint">Unit cost from your supplier or manufacturer</div>
+    </div>
+    <div class="field">
+      <label>Packaging Cost</label>
+      <div class="input-wrap"><span class="symbol">$</span>
+        <input type="number" id="packagingCost" value="0" min="0" step="0.01">
+      </div>
+      <div class="hint">Bags, boxes, tissue, tape, inserts</div>
+    </div>
+    <div class="field">
+      <label>Laminates / Finishes / Extras</label>
+      <div class="input-wrap"><span class="symbol">$</span>
+        <input type="number" id="extras" value="0" min="0" step="0.01">
+      </div>
+      <div class="hint">Foiling, coating, sticker laminates, etc.</div>
+    </div>
+    <div class="field">
+      <label>Studio Overhead Per Item</label>
+      <div class="input-wrap"><span class="symbol">$</span>
+        <input type="number" id="overhead" value="0" min="0" step="0.01">
+      </div>
+      <div class="hint">Rent, utilities, subscriptions split per unit</div>
+    </div>
+  </div>
+
+  <!-- Labor -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Your Time</div>
+    <div class="field">
+      <label>Minutes to Make &amp; Pack Per Item</label>
+      <div class="input-wrap">
+        <input type="number" id="laborMins" value="0" min="0" step="1" class="no-symbol">
+      </div>
+      <div class="hint">Include packing, labeling, and handoff time</div>
+    </div>
+    <div class="field">
+      <label>Your Hourly Rate</label>
+      <div class="input-wrap"><span class="symbol">$</span>
+        <input type="number" id="hourlyRate" value="0" min="0" step="1">
+      </div>
+      <div class="hint">What your time is worth to you</div>
+    </div>
+  </div>
+
+  <!-- Etsy Fees -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Etsy Fee Settings</div>
+    <div class="field">
+      <label>Listing Fee</label>
+      <div class="input-wrap"><span class="symbol">$</span>
+        <input type="number" id="listingFee" value="0.20" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="field">
+      <label>Transaction Fee %</label>
+      <div class="input-wrap">
+        <input type="number" id="transactionPct" value="6.5" min="0" max="100" step="0.1" class="has-pct">
+        <span class="symbol pct">%</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Payment Processing %</label>
+      <div class="input-wrap">
+        <input type="number" id="processingPct" value="3.0" min="0" max="100" step="0.1" class="has-pct">
+        <span class="symbol pct">%</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Payment Processing Fixed Fee</label>
+      <div class="input-wrap"><span class="symbol">$</span>
+        <input type="number" id="processingFixed" value="0.25" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-left">
+        <div class="toggle-label">Offsite Ads Fee</div>
+        <div class="toggle-hint">Etsy charges this when an ad drives a sale</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="offsiteToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="offsite-rate-row" id="offsiteRateRow">
+      <label style="display:block;font-size:0.72rem;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Offsite Ads Rate %</label>
+      <div class="hint" style="margin-bottom:5px;">15% if under $10K/yr &bull; 12% if over $10K/yr</div>
+      <div class="input-wrap">
+        <input type="number" id="offsitePct" value="15" min="0" max="100" step="1" class="has-pct">
+        <span class="symbol pct">%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="card results-card">
+    <div class="card-title"><span class="dot"></span>Your Results</div>
+
+    <div class="results-grid">
+      <div class="result-block">
+        <div class="r-label">Net Profit / Order</div>
+        <div class="r-value accent" id="r-profit">$0.00</div>
+      </div>
+      <div class="result-block">
+        <div class="r-label">Profit Margin</div>
+        <div class="r-value neutral" id="r-margin">0%</div>
+      </div>
+      <div class="result-block">
+        <div class="r-label">Total Cost / Order</div>
+        <div class="r-value neutral" id="r-totalcost">$0.00</div>
+      </div>
+      <div class="result-block">
+        <div class="r-label">Monthly Profit Est.</div>
+        <div class="r-value neutral" id="r-monthly">$0.00</div>
+      </div>
+    </div>
+
+    <div class="margin-bar-wrap">
+      <div class="margin-bar-label"><span>Profit margin</span><span id="bar-label">0%</span></div>
+      <div class="margin-bar-bg">
+        <div class="margin-bar-fill" id="marginBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="nudge-bar" id="nudgeBar">
+      <span class="nudge-icon" id="nudgeIcon">💡</span>
+      <span class="nudge-text" id="nudgeText">Fill in your numbers above to see how your pricing holds up.</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="bottom-row">
+      <div class="breakdown-block">
+        <div class="b-title">Revenue</div>
+        <div class="b-row"><span>Listing price</span><span id="b-sale">$0.00</span></div>
+        <div class="b-row"><span>Shipping collected</span><span id="b-shippingIn">$0.00</span></div>
+        <div class="b-row total-row"><span>Total revenue</span><span id="b-revenue">$0.00</span></div>
+      </div>
+      <div class="breakdown-block">
+        <div class="b-title">Production (COGS)</div>
+        <div class="b-row"><span>Product cost</span><span id="b-product">$0.00</span></div>
+        <div class="b-row"><span>Packaging</span><span id="b-packaging">$0.00</span></div>
+        <div class="b-row"><span>Extras / finishes</span><span id="b-extras">$0.00</span></div>
+        <div class="b-row"><span>Studio overhead</span><span id="b-overhead">$0.00</span></div>
+        <div class="b-row"><span>Labor</span><span id="b-labor">$0.00</span></div>
+        <div class="b-row"><span>Shipping out</span><span id="b-shippingOut">$0.00</span></div>
+        <div class="b-row total-row"><span>Total COGS</span><span id="b-cogs">$0.00</span></div>
+      </div>
+      <div class="breakdown-block">
+        <div class="b-title">Etsy Fees</div>
+        <div class="b-row"><span>Listing</span><span id="b-listing">$0.00</span></div>
+        <div class="b-row"><span>Transaction</span><span id="b-transaction">$0.00</span></div>
+        <div class="b-row"><span>Processing</span><span id="b-processing">$0.00</span></div>
+        <div class="b-row" id="b-offsiteRow" style="display:none"><span>Offsite ads</span><span id="b-offsite">$0.00</span></div>
+        <div class="b-row total-row"><span>Total fees</span><span id="b-totalFees">$0.00</span></div>
+      </div>
+    </div>
+
+    <button class="reset-btn" id="resetBtn">Reset all fields</button>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  By <a href="https://www.occasionalish.com" target="_blank">Occasionalish</a> &nbsp;&bull;&nbsp; Your First Stationery Product
+</div>
+
+<script>
+  const fieldIds = ['salePrice','shippingCharged','shippingActual','ordersPerMonth',
+                    'productCost','packagingCost','extras','overhead',
+                    'laborMins','hourlyRate',
+                    'listingFee','transactionPct','processingPct','processingFixed','offsitePct'];
+
+  const defaults = {
+    salePrice:0, shippingCharged:0, shippingActual:0, ordersPerMonth:0,
+    productCost:0, packagingCost:0, extras:0, overhead:0,
+    laborMins:0, hourlyRate:0,
+    listingFee:0.20, transactionPct:6.5, processingPct:3.0, processingFixed:0.25, offsitePct:15
+  };
+
+  const fmt = n => '$' + Math.abs(n).toFixed(2);
+  const fmtSigned = n => (n < 0 ? '-$' : '$') + Math.abs(n).toFixed(2);
+
+  function getNudge(margin, netProfit, revenue) {
+    if (revenue === 0) return { icon:'💡', text:'Fill in your numbers above to see how your pricing holds up.' };
+    if (netProfit < 0) return { icon:'🚨', text:'<strong>You\'re losing money on this listing.</strong> Try raising your price or cutting production costs.' };
+    if (margin < 10)   return { icon:'⚠️', text:'<strong>Margin is very tight.</strong> A small cost increase could put you in the red. Consider raising your price.' };
+    if (margin < 25)   return { icon:'📊', text:'<strong>Margin is okay but slim.</strong> Aim for 30%+ for a healthy, sustainable product.' };
+    if (margin < 40)   return { icon:'✅', text:'<strong>You\'re in decent shape!</strong> This product is profitable. Can you reduce costs to push margin higher?' };
+    return { icon:'🎉', text:'<strong>Strong margin!</strong> This is a healthy, profitable product. Nice work.' };
+  }
+
+  function calc() {
+    const g = id => parseFloat(document.getElementById(id).value) || 0;
+    const offsiteOn = document.getElementById('offsiteToggle').checked;
+
+    const salePrice       = g('salePrice');
+    const shippingCharged = g('shippingCharged');
+    const shippingActual  = g('shippingActual');
+    const orders          = g('ordersPerMonth');
+    const productCost     = g('productCost');
+    const packagingCost   = g('packagingCost');
+    const extras          = g('extras');
+    const overhead        = g('overhead');
+    const laborMins       = g('laborMins');
+    const hourlyRate      = g('hourlyRate');
+    const listingFee      = g('listingFee');
+    const transactionPct  = g('transactionPct') / 100;
+    const processingPct   = g('processingPct') / 100;
+    const processingFixed = g('processingFixed');
+    const offsitePct      = g('offsitePct') / 100;
+
+    const totalRevenue   = salePrice + shippingCharged;
+    const transactionFee = totalRevenue * transactionPct;
+    const processingFee  = totalRevenue * processingPct + processingFixed;
+    const offsiteFee     = offsiteOn ? salePrice * offsitePct : 0;
+    const totalFees      = listingFee + transactionFee + processingFee + offsiteFee;
+
+    const labor     = (laborMins / 60) * hourlyRate;
+    const cogs      = productCost + packagingCost + extras + overhead + labor + shippingActual;
+    const totalCost = cogs + totalFees;
+    const netProfit = totalRevenue - totalCost;
+    const margin    = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+    const monthly   = netProfit * orders;
+
+    const profitEl = document.getElementById('r-profit');
+    profitEl.textContent = fmtSigned(netProfit);
+    profitEl.className = 'r-value ' + (netProfit >= 0 ? 'accent' : 'bad');
+
+    const marginEl = document.getElementById('r-margin');
+    marginEl.textContent = margin.toFixed(1) + '%';
+    marginEl.className = 'r-value ' + (margin >= 30 ? 'good' : margin < 0 ? 'bad' : 'neutral');
+
+    const monthlyEl = document.getElementById('r-monthly');
+    monthlyEl.textContent = fmtSigned(monthly);
+    monthlyEl.className = 'r-value ' + (monthly > 0 ? 'good' : monthly < 0 ? 'bad' : 'neutral');
+
+    document.getElementById('r-totalcost').textContent = fmt(totalCost);
+
+    const barPct = Math.max(0, Math.min(100, margin));
+    document.getElementById('marginBar').style.width = barPct + '%';
+    document.getElementById('bar-label').textContent = margin.toFixed(1) + '%';
+
+    const nudge = getNudge(margin, netProfit, totalRevenue);
+    document.getElementById('nudgeIcon').textContent = nudge.icon;
+    document.getElementById('nudgeText').innerHTML = nudge.text;
+
+    document.getElementById('b-sale').textContent        = fmt(salePrice);
+    document.getElementById('b-shippingIn').textContent  = fmt(shippingCharged);
+    document.getElementById('b-revenue').textContent     = fmt(totalRevenue);
+    document.getElementById('b-product').textContent     = fmt(productCost);
+    document.getElementById('b-packaging').textContent   = fmt(packagingCost);
+    document.getElementById('b-extras').textContent      = fmt(extras);
+    document.getElementById('b-overhead').textContent    = fmt(overhead);
+    document.getElementById('b-labor').textContent       = fmt(labor);
+    document.getElementById('b-shippingOut').textContent = fmt(shippingActual);
+    document.getElementById('b-cogs').textContent        = fmt(cogs);
+    document.getElementById('b-listing').textContent     = fmt(listingFee);
+    document.getElementById('b-transaction').textContent = fmt(transactionFee);
+    document.getElementById('b-processing').textContent  = fmt(processingFee);
+    document.getElementById('b-offsite').textContent     = fmt(offsiteFee);
+    document.getElementById('b-totalFees').textContent   = fmt(totalFees);
+
+    document.getElementById('b-offsiteRow').style.display = offsiteOn ? 'flex' : 'none';
+  }
+
+  document.getElementById('offsiteToggle').addEventListener('change', function() {
+    document.getElementById('offsiteRateRow').classList.toggle('visible', this.checked);
+    calc();
+  });
+
+  fieldIds.forEach(id => document.getElementById(id).addEventListener('input', calc));
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    fieldIds.forEach(id => { document.getElementById(id).value = defaults[id]; });
+    document.getElementById('offsiteToggle').checked = false;
+    document.getElementById('offsiteRateRow').classList.remove('visible');
+    calc();
+  });
+
+  calc();
+</script>
+</body>
+</html>

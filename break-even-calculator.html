@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Break-Even Calculator by Occasionalish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #FFF8F0;
+    color: #1a1a1a;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* Top bar */
+  .topbar {
+    background: #1a1a1a;
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .topbar-brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem;
+    color: #fff;
+  }
+
+  .topbar-brand em { font-style: italic; color: #F4A261; }
+
+  .topbar-tag {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* Header */
+  .page-header {
+    text-align: center;
+    padding: 40px 20px 8px;
+  }
+
+  .page-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.6rem;
+    color: #1a1a1a;
+    line-height: 1.1;
+  }
+
+  .page-header h1 em { font-style: italic; color: #E85D26; }
+
+  .page-header p {
+    font-size: 0.9rem;
+    color: #888;
+    margin-top: 8px;
+    font-weight: 300;
+  }
+
+  .how-to {
+    max-width: 860px;
+    margin: 20px auto 28px;
+    padding: 0 20px;
+    display: flex;
+    gap: 16px;
+  }
+
+  .how-to-pill {
+    background: #fff;
+    border: 1.5px solid #eedfcf;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.78rem;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .how-to-pill .pip {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .pip-orange { background: #E85D26; }
+  .pip-dark   { background: #1a1a1a; }
+
+  /* Layout */
+  .layout {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* Scenario grid */
+  .scenarios {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1.5px solid #eedfcf;
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.05rem;
+    margin-bottom: 18px;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-a { background: #E85D26; }
+  .dot-b { background: #6B9FD4; }
+
+  .field { margin-bottom: 14px; }
+
+  .field label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 5px;
+  }
+
+  .field .hint {
+    font-size: 0.7rem;
+    color: #bbb;
+    margin-top: 3px;
+    font-weight: 300;
+  }
+
+  .input-wrap { position: relative; }
+
+  .input-wrap .symbol {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    color: #bbb;
+    pointer-events: none;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    padding: 9px 12px 9px 26px;
+    border: 1.5px solid #e8ddd3;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: #1a1a1a;
+    background: #FDFAF7;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input[type="number"]:focus {
+    outline: none;
+    border-color: #E85D26;
+    background: #fff;
+  }
+
+  input.no-symbol { padding-left: 12px; }
+
+  /* Scenario A accent */
+  .scenario-a input[type="number"]:focus { border-color: #E85D26; }
+  .scenario-b input[type="number"]:focus { border-color: #6B9FD4; }
+
+  /* Mini results inside each scenario card */
+  .mini-results {
+    margin-top: 20px;
+    background: #FDFAF7;
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1.5px solid #eedfcf;
+  }
+
+  .mini-results .mr-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+
+  .mr-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: #888;
+    margin-bottom: 6px;
+  }
+
+  .mr-row:last-child { margin-bottom: 0; }
+  .mr-row span:last-child { font-weight: 600; color: #1a1a1a; }
+  .mr-row.highlight span:last-child { color: #E85D26; }
+  .mr-row.highlight-b span:last-child { color: #6B9FD4; }
+
+  /* Comparison table */
+  .table-card {
+    background: #1a1a1a;
+    border-radius: 16px;
+    padding: 24px;
+    border: none;
+    color: #fff;
+  }
+
+  .table-card .card-title { color: #fff; }
+
+  .table-card .card-title .dot { background: #F4A261; }
+
+  .proj-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .proj-table th {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0 12px 12px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .proj-table th:first-child { text-align: left; }
+
+  .proj-table td {
+    padding: 10px 12px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: #ccc;
+  }
+
+  .proj-table td:first-child {
+    text-align: left;
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .proj-table tr:last-child td { border-bottom: none; }
+
+  .proj-table tr.breakeven-row td {
+    background: rgba(255,255,255,0.04);
+    font-weight: 600;
+  }
+
+  .val-pos-a { color: #F4A261 !important; font-weight: 600; }
+  .val-pos-b { color: #6B9FD4 !important; font-weight: 600; }
+  .val-neg   { color: #EB5757 !important; }
+
+  .winner-badge {
+    display: inline-block;
+    background: rgba(244,162,97,0.15);
+    color: #F4A261;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 99px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .winner-badge.b {
+    background: rgba(107,159,212,0.15);
+    color: #6B9FD4;
+  }
+
+  /* Nudge */
+  .nudge-bar {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-top: 20px;
+  }
+
+  .nudge-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+  .nudge-text {
+    font-size: 0.85rem;
+    color: #ccc;
+    line-height: 1.5;
+  }
+
+  .nudge-text strong { color: #fff; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 0 20px;
+    font-size: 0.78rem;
+    color: #ccc;
+  }
+
+  .footer a { color: #E85D26; text-decoration: none; font-weight: 500; }
+  .footer a:hover { text-decoration: underline; }
+
+  .reset-btn {
+    margin-top: 16px;
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    color: #888;
+    padding: 7px 18px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: block;
+    margin-left: auto;
+  }
+
+  .reset-btn:hover { border-color: #F4A261; color: #F4A261; }
+
+  @media (max-width: 620px) {
+    .scenarios { grid-template-columns: 1fr; }
+    .page-header h1 { font-size: 1.9rem; }
+    .topbar { padding: 12px 20px; }
+    .how-to { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-brand"><em>Occasionalish</em></div>
+  <div class="topbar-tag">Free Resource</div>
+</div>
+
+<!-- Header -->
+<div class="page-header">
+  <h1>Break-Even <em>Calculator</em></h1>
+  <p>Compare a small run vs a large run to see which order size makes more sense</p>
+</div>
+
+<div class="how-to">
+  <div class="how-to-pill">
+    <span class="pip pip-orange"></span>
+    Orange fields = enter your numbers
+  </div>
+  <div class="how-to-pill">
+    <span class="pip pip-dark"></span>
+    Dark fields = calculated automatically
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Scenarios -->
+  <div class="scenarios">
+
+    <!-- Scenario A -->
+    <div class="card scenario-a">
+      <div class="card-title"><span class="dot dot-a"></span>Small Run</div>
+
+      <div class="field">
+        <label>Run Label (optional)</label>
+        <input type="text" id="nameA" placeholder="e.g. Small Run (50 pcs)" style="width:100%;padding:9px 12px;border:1.5px solid #e8ddd3;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:#1a1a1a;background:#FDFAF7;outline:none;">
+      </div>
+
+      <div class="field">
+        <label>Total Print Cost for This Run</label>
+        <div class="input-wrap"><span class="symbol">$</span>
+          <input type="number" id="investA" value="200" min="0" step="1">
+        </div>
+        <div class="hint">Total print cost for this run quantity</div>
+      </div>
+
+      <div class="field">
+        <label>Selling Price Per Unit</label>
+        <div class="input-wrap"><span class="symbol">$</span>
+          <input type="number" id="priceA" value="12" min="0" step="0.01">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Cost Per Unit</label>
+        <div class="input-wrap"><span class="symbol">$</span>
+          <input type="number" id="costA" value="4.50" min="0" step="0.01">
+        </div>
+        <div class="hint">Unit cost at this run size (total cost ÷ quantity)</div>
+      </div>
+
+      <div class="mini-results">
+        <div class="mr-title">Quick Stats</div>
+        <div class="mr-row"><span>Profit per unit</span><span id="ppuA">$0.00</span></div>
+        <div class="mr-row"><span>Profit margin</span><span id="marginA">0%</span></div>
+        <div class="mr-row highlight"><span>Break-even at</span><span id="beA">0 units</span></div>
+        <div class="mr-row"><span>Revenue at break-even</span><span id="beRevA">$0.00</span></div>
+      </div>
+    </div>
+
+    <!-- Scenario B -->
+    <div class="card scenario-b">
+      <div class="card-title"><span class="dot dot-b"></span>Large Run</div>
+
+      <div class="field">
+        <label>Run Label (optional)</label>
+        <input type="text" id="nameB" placeholder="e.g. Large Run (200 pcs)" style="width:100%;padding:9px 12px;border:1.5px solid #e8ddd3;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:#1a1a1a;background:#FDFAF7;outline:none;">
+      </div>
+
+      <div class="field">
+        <label>Total Print Cost for This Run</label>
+        <div class="input-wrap"><span class="symbol">$</span>
+          <input type="number" id="investB" value="400" min="0" step="1">
+        </div>
+        <div class="hint">Total print cost for this run quantity</div>
+      </div>
+
+      <div class="field">
+        <label>Selling Price Per Unit</label>
+        <div class="input-wrap"><span class="symbol">$</span>
+          <input type="number" id="priceB" value="12" min="0" step="0.01">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Cost Per Unit</label>
+        <div class="input-wrap"><span class="symbol">$</span>
+          <input type="number" id="costB" value="1.00" min="0" step="0.01">
+        </div>
+        <div class="hint">Unit cost at this run size (total cost ÷ quantity)</div>
+      </div>
+
+      <div class="mini-results">
+        <div class="mr-title">Quick Stats</div>
+        <div class="mr-row"><span>Profit per unit</span><span id="ppuB">$0.00</span></div>
+        <div class="mr-row"><span>Profit margin</span><span id="marginB">0%</span></div>
+        <div class="mr-row highlight-b"><span>Break-even at</span><span id="beB">0 units</span></div>
+        <div class="mr-row"><span>Revenue at break-even</span><span id="beRevB">$0.00</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="table-card">
+    <div class="card-title"><span class="dot"></span>Profit Projection: Small Run vs Large Run</div>
+
+    <table class="proj-table">
+      <thead>
+        <tr>
+          <th>Units Sold</th>
+          <th id="th-a">Scenario A</th>
+          <th id="th-b">Scenario B</th>
+          <th>Better Deal</th>
+        </tr>
+      </thead>
+      <tbody id="projBody"></tbody>
+    </table>
+
+    <div class="nudge-bar">
+      <span class="nudge-icon" id="nudgeIcon">💡</span>
+      <span class="nudge-text" id="nudgeText">Fill in your numbers above to see which run size pays off faster.</span>
+    </div>
+
+    <button class="reset-btn" id="resetBtn">Reset all fields</button>
+  </div>
+
+</div>
+
+<div class="footer">
+  By <a href="https://www.occasionalish.com" target="_blank">Occasionalish</a> &nbsp;&bull;&nbsp; Your First Stationery Product
+</div>
+
+<script>
+  const UNIT_MILESTONES = [10, 25, 50, 75, 100, 150, 200, 300, 500, 1000];
+
+  const fmt = n => {
+    const abs = Math.abs(n).toFixed(2);
+    return (n < 0 ? '-$' : '$') + abs;
+  };
+
+  function calcScenario(invest, price, cost) {
+    const ppu    = price - cost;
+    const margin = price > 0 ? (ppu / price) * 100 : 0;
+    const be     = ppu > 0 ? Math.ceil(invest / ppu) : Infinity;
+    const beRev  = be === Infinity ? 0 : be * price;
+    return { ppu, margin, be, beRev };
+  }
+
+  function profitAt(units, invest, price, cost) {
+    return units * (price - cost) - invest;
+  }
+
+  function getNudge(beA, beB, nameA, nameB, ppuA, ppuB) {
+    const lA = nameA || 'Small Run';
+    const lB = nameB || 'Large Run';
+    if (beA === Infinity && beB === Infinity)
+      return { icon: '🚨', text: '<strong>Neither run size is profitable.</strong> Your cost per unit is higher than or equal to your selling price. Try raising your price or lowering costs.' };
+    if (beA === Infinity)
+      return { icon: '⚠️', text: `<strong>${lA} will never break even</strong> at this price and cost. ${lB} is your better bet.` };
+    if (beB === Infinity)
+      return { icon: '⚠️', text: `<strong>${lB} will never break even</strong> at this price and cost. ${lA} is your better bet.` };
+    if (beA < beB)
+      return { icon: '🏆', text: `<strong>${lA} breaks even faster</strong> (${beA} units vs ${beB} units). If you want quicker payback, go with ${lA}. But check the long-term profit -- higher profit per unit wins over time.` };
+    if (beB < beA)
+      return { icon: '🏆', text: `<strong>${lB} breaks even faster</strong> (${beB} units vs ${beA} units). If you want quicker payback, go with ${lB}. But check the long-term profit -- higher profit per unit wins over time.` };
+    return { icon: '⚖️', text: `<strong>Both scenarios break even at the same number of units</strong> (${beA}). Compare the long-run profit columns to see which one grows faster.` };
+  }
+
+  function calc() {
+    const g = id => parseFloat(document.getElementById(id).value) || 0;
+    const nameA = document.getElementById('nameA').value.trim();
+    const nameB = document.getElementById('nameB').value.trim();
+
+    const investA = g('investA'), priceA = g('priceA'), costA = g('costA');
+    const investB = g('investB'), priceB = g('priceB'), costB = g('costB');
+
+    const sA = calcScenario(investA, priceA, costA);
+    const sB = calcScenario(investB, priceB, costB);
+
+    // Update headers
+    document.getElementById('th-a').textContent = nameA || 'Small Run';
+    document.getElementById('th-b').textContent = nameB || 'Large Run';
+
+    // Mini results A
+    document.getElementById('ppuA').textContent    = fmt(sA.ppu);
+    document.getElementById('marginA').textContent = sA.margin.toFixed(1) + '%';
+    document.getElementById('beA').textContent     = sA.be === Infinity ? 'Never' : sA.be + ' units';
+    document.getElementById('beRevA').textContent  = sA.be === Infinity ? 'N/A' : '$' + sA.beRev.toFixed(2);
+
+    // Mini results B
+    document.getElementById('ppuB').textContent    = fmt(sB.ppu);
+    document.getElementById('marginB').textContent = sB.margin.toFixed(1) + '%';
+    document.getElementById('beB').textContent     = sB.be === Infinity ? 'Never' : sB.be + ' units';
+    document.getElementById('beRevB').textContent  = sB.be === Infinity ? 'N/A' : '$' + sB.beRev.toFixed(2);
+
+    // Build milestones -- include break-even points
+    const milestones = [...UNIT_MILESTONES];
+    if (sA.be !== Infinity && !milestones.includes(sA.be)) milestones.push(sA.be);
+    if (sB.be !== Infinity && !milestones.includes(sB.be)) milestones.push(sB.be);
+    milestones.sort((a, b) => a - b);
+
+    // Table
+    const tbody = document.getElementById('projBody');
+    tbody.innerHTML = '';
+
+    milestones.forEach(units => {
+      const pA = profitAt(units, investA, priceA, costA);
+      const pB = profitAt(units, investB, priceB, costB);
+      const isBEA = sA.be !== Infinity && units === sA.be;
+      const isBEB = sB.be !== Infinity && units === sB.be;
+
+      let winner = '';
+      if (pA > pB) winner = `<span class="winner-badge">${nameA || 'Small Run'}</span>`;
+      else if (pB > pA) winner = `<span class="winner-badge b">${nameB || 'Large Run'}</span>`;
+      else winner = '<span style="color:#888;font-size:0.75rem;">Tied</span>';
+
+      const classA = pA >= 0 ? 'val-pos-a' : 'val-neg';
+      const classB = pB >= 0 ? 'val-pos-b' : 'val-neg';
+
+      const rowClass = (isBEA || isBEB) ? 'breakeven-row' : '';
+      const beLabel  = isBEA && isBEB ? ' ★ Both break even' : isBEA ? ' ★ Small Run breaks even' : isBEB ? ' ★ Large Run breaks even' : '';
+
+      tbody.innerHTML += `
+        <tr class="${rowClass}">
+          <td>${units} units${beLabel}</td>
+          <td class="${classA}">${fmt(pA)}</td>
+          <td class="${classB}">${fmt(pB)}</td>
+          <td>${winner}</td>
+        </tr>`;
+    });
+
+    // Nudge
+    const nudge = getNudge(sA.be, sB.be, nameA, nameB, sA.ppu, sB.ppu);
+    document.getElementById('nudgeIcon').textContent  = nudge.icon;
+    document.getElementById('nudgeText').innerHTML    = nudge.text;
+  }
+
+  // Events
+  ['investA','priceA','costA','investB','priceB','costB'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calc);
+  });
+  ['nameA','nameB'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calc);
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    document.getElementById('nameA').value   = '';
+    document.getElementById('investA').value = 200;
+    document.getElementById('priceA').value  = 12;
+    document.getElementById('costA').value   = 4.50;
+    document.getElementById('nameB').value   = '';
+    document.getElementById('investB').value = 400;
+    document.getElementById('priceB').value  = 12;
+    document.getElementById('costB').value   = 1.00;
+    calc();
+  });
+
+  calc();
+</script>
+</body>
+</html>
