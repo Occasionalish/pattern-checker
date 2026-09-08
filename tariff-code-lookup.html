@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tariff Code Lookup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF6EF; --card:#FFFFFF; --edge:#EFE3D6; --field:#FDFAF6;
+    --ink:#171514; --panel:#1F1D1B; --tile:#2C2926; --bar:#0F0E0D;
+    --orange:#DE6E45; --peach:#EFA98D; --muted:#8C8781; --label:#9A938C;
+    --serif:"Playfair Display", Georgia, "Times New Roman", serif;
+    --sans:"DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+
+  .topbar{background:var(--bar);padding:15px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .wordmark{font-family:var(--serif);font-style:italic;font-weight:700;font-size:22px;color:#EBB694;}
+  .tagline{font-size:11.5px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#F5EFE8;}
+
+  main{max-width:840px;margin:0 auto;padding:40px 22px 70px;}
+  h1{font-family:var(--serif);font-weight:700;font-size:clamp(32px,5.4vw,52px);line-height:1.08;text-align:center;margin:0 0 8px;}
+  h1 em{font-style:italic;color:var(--orange);}
+  .sub{text-align:center;color:var(--muted);margin:0 0 30px;font-size:16px;}
+
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:22px;}
+  .card + .card{margin-top:20px;}
+  .cardhead{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:700;font-size:19px;margin:0 0 16px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--orange);flex:none;}
+  .hint{font-size:12.5px;color:var(--label);margin:14px 0 0;}
+
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    text-align:left;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--label);padding:0 10px 10px;border-bottom:1.5px solid var(--edge);
+  }
+  tbody td{padding:13px 10px;border-bottom:1px solid var(--edge);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:0;}
+  .pname{font-weight:700;}
+  .pnote{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .codebtn{
+    font-family:var(--sans);font-size:14.5px;font-weight:600;color:var(--ink);
+    background:var(--field);border:1px solid var(--edge);border-radius:8px;
+    padding:6px 10px;cursor:pointer;white-space:nowrap;
+  }
+  .codebtn:hover{border-color:var(--orange);color:var(--orange);}
+  .codebtn.copied{border-color:var(--orange);background:#FCEFE7;color:var(--orange);}
+
+  @media (max-width:640px){
+    thead{display:none;}
+    tbody tr{display:block;padding:14px 0;border-bottom:1px solid var(--edge);}
+    tbody tr:last-child{border-bottom:0;}
+    tbody td{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 0;border-bottom:0;}
+    tbody td:first-child{display:block;}
+    tbody td::before{content:attr(data-label);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--label);}
+  }
+
+  .foot{text-align:center;color:var(--label);font-size:13px;margin:30px 0 0;}
+  .credit{text-align:center;font-size:13.5px;color:var(--muted);margin:16px 0 0;padding-top:16px;border-top:1px solid var(--edge);}
+  .credit a{color:var(--orange);text-decoration:none;font-weight:500;}
+  .credit a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="wordmark">Occasionalish</span>
+  <span class="tagline">Your First Stationery Product</span>
+</div>
+
+<main>
+  <h1>Tariff Code <em>Lookup</em></h1>
+  <p class="sub">Find the tariff code and HS code for common stationery products, so you can fill out customs paperwork or check import duty.</p>
+
+  <section class="card">
+    <p class="cardhead"><i class="dot"></i>Product Codes</p>
+    <table>
+      <thead>
+        <tr><th>Product</th><th>Tariff Code</th><th>HS Code</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <p class="hint">Tap a code to copy it. Use it when you fill out a commercial invoice or check duty with your manufacturer or freight forwarder.</p>
+  </section>
+
+  <p class="foot">The right code can change based on the exact material and how your product is made. If a shipment is large or the classification is not obvious, confirm the code with your manufacturer, freight forwarder, or a licensed customs broker. You can also check codes yourself at the official <a href="https://hts.usitc.gov/" target="_blank" rel="noopener" style="color:var(--orange)">U.S. Harmonized Tariff Schedule</a>. Codes last checked September 2026.</p>
+  <p class="credit">By <a href="https://www.occasionalish.com/" target="_blank" rel="noopener">Occasionalish</a> &nbsp;&bull;&nbsp; Your First Stationery Product</p>
+</main>
+
+<script>
+const PRODUCTS = [
+  {name:"Acrylic Keychain", tariff:"3926.40", hs:"3926.40.99", note:"General category for plastic ornamental items."},
+  {name:"Art Print", tariff:"4911.91", hs:"4911.91.00", note:"Printed pictures, designs, and photographs."},
+  {name:"Decals", tariff:"4821.10", hs:"4821.10.10", note:"Printed paper labels."},
+  {name:"Earrings", tariff:"7113.19", hs:"7113.19.50", note:"For earrings made of precious metal, not costume jewelry."},
+  {name:"Enamel Keychains", tariff:"7117.19", hs:"7117.19.90", note:"Imitation jewelry of base metal."},
+  {name:"Enamel Pins", tariff:"7117.19", hs:"7117.19.90", note:"Imitation jewelry of base metal."},
+  {name:"Greeting Cards", tariff:"4909.00", hs:"4909.00.40", note:"Printed cards with a greeting or message."},
+  {name:"Lanyards", tariff:"6307.90", hs:"6307.90.98", note:"Made-up textile article, general “other” category."},
+  {name:"Notebooks", tariff:"4820.10", hs:"4820.10.20", note:"Bound notebooks, diaries, and similar articles."},
+  {name:"Notepads", tariff:"4820.10", hs:"4820.10.20", note:"Letter pads, memo pads, and similar articles."},
+  {name:"Patches", tariff:"5810.92", hs:"5810.92.90", note:"Embroidered patches on man-made fiber fabric."},
+  {name:"Temporary Tattoo", tariff:"4908.90", hs:"4908.90.00", note:"Transfers/decalcomanias, not vitrifiable."},
+  {name:"Vinyl Stickers", tariff:"3919.90", hs:"3919.90.50", note:"Self-adhesive plastic sheet/film, other."},
+  {name:"Washi Tape", tariff:"4811.41", hs:"4811.41.20", note:"Self-adhesive paper in strips or rolls."}
+];
+
+const rows = document.getElementById('rows');
+
+function makeCodeBtn(text){
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'codebtn';
+  btn.textContent = text;
+  btn.addEventListener('click', () => {
+    try{ navigator.clipboard.writeText(text); }catch(e){}
+    btn.classList.add('copied');
+    const original = btn.textContent;
+    btn.textContent = 'Copied';
+    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = original; }, 1100);
+  });
+  return btn;
+}
+
+PRODUCTS.forEach(p => {
+  const tr = document.createElement('tr');
+
+  const tdName = document.createElement('td');
+  tdName.setAttribute('data-label', 'Product');
+  tdName.innerHTML = `<div class="pname">${p.name}</div><div class="pnote">${p.note}</div>`;
+
+  const tdTariff = document.createElement('td');
+  tdTariff.setAttribute('data-label', 'Tariff Code');
+  tdTariff.appendChild(makeCodeBtn(p.tariff));
+
+  const tdHs = document.createElement('td');
+  tdHs.setAttribute('data-label', 'HS Code');
+  tdHs.appendChild(makeCodeBtn(p.hs));
+
+  tr.append(tdName, tdTariff, tdHs);
+  rows.appendChild(tr);
+});
+</script>
+</body>
+</html>
